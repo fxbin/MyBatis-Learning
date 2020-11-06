@@ -20,6 +20,8 @@ import java.lang.reflect.Field;
 import org.apache.ibatis.reflection.Reflector;
 
 /**
+ * 负责对象属性的读操作
+ *
  * @author Clinton Begin
  */
 public class GetFieldInvoker implements Invoker {
@@ -32,10 +34,15 @@ public class GetFieldInvoker implements Invoker {
   @Override
   public Object invoke(Object target, Object[] args) throws IllegalAccessException {
     try {
+      // 直接通过烦着获取目标属性的值
       return field.get(target);
     } catch (IllegalAccessException e) {
+      // 若无法访问
+      // 判断属性的访问性是否可以修改
       if (Reflector.canControlMemberAccessible()) {
+        // 属性设置为可访问
         field.setAccessible(true);
+        // 再次通过反射获取目标属性的值
         return field.get(target);
       } else {
         throw e;
