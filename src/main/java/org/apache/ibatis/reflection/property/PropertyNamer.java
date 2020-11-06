@@ -20,6 +20,8 @@ import java.util.Locale;
 import org.apache.ibatis.reflection.ReflectionException;
 
 /**
+ * 提供属性名称相关的操作
+ *
  * @author Clinton Begin
  */
 public final class PropertyNamer {

@@ -28,10 +28,21 @@ public final class PropertyCopier {
     // Prevent Instantiation of Static Class
   }
 
+  /**
+   * 完成对象的输出复制
+   * 注： 对于继承得到的属性无法赋值，{@link Class#getDeclaredFields()} 获取的属性不包含继承属性
+   *
+   * @param type 对象的类型
+   * @param sourceBean 提供属性值的对象
+   * @param destinationBean 要被写入新属性值的对象
+   */
   public static void copyBeanProperties(Class<?> type, Object sourceBean, Object destinationBean) {
+    // 源对象与目标对象同源的类
     Class<?> parent = type;
     while (parent != null) {
+      // 获取该类的所有属性
       final Field[] fields = parent.getDeclaredFields();
+      // 遍历所有属性，依次赋值
       for (Field field : fields) {
         try {
           try {
