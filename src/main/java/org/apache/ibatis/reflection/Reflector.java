@@ -49,25 +49,41 @@ import org.apache.ibatis.reflection.property.PropertyNamer;
  */
 public class Reflector {
 
+  // 要被反射解析的类
   private final Class<?> type;
+  // 能够读的属性列表，即有 get 方法的属性列表
   private final String[] readablePropertyNames;
+  // 能够写的属性列表，即有 set 方法的属性列表
   private final String[] writablePropertyNames;
+  // set 方法映射表。键为属性名，值为对应的 set 方法
   private final Map<String, Invoker> setMethods = new HashMap<>();
+  // get 方法映射表，键为属性名，值为对应的 get 方法
   private final Map<String, Invoker> getMethods = new HashMap<>();
+  // set 方法输入类型。键为属性名，值为对应的该属性的 set 方法的类型，（实际为 set 方法的第一个参数类型）
   private final Map<String, Class<?>> setTypes = new HashMap<>();
+  // get 方法输出类型。键为属性名，值为对应的该属性的 get 方法的类型（实际为get方法的返回值类型）
   private final Map<String, Class<?>> getTypes = new HashMap<>();
+  // 默认构造函数
   private Constructor<?> defaultConstructor;
-
+  // 大小写无关的属性映射表。键为属性名全大写值。值为属性名
   private Map<String, String> caseInsensitivePropertyMap = new HashMap<>();
 
   public Reflector(Class<?> clazz) {
+    // 要被反射的类
     type = clazz;
+    // 设置默认构造器属性
     addDefaultConstructor(clazz);
+    // 解析所有的 getter
     addGetMethods(clazz);
+    // 解析所有的 setter
     addSetMethods(clazz);
+    // 解析所有的属性
     addFields(clazz);
+    // 设定可读属性
     readablePropertyNames = getMethods.keySet().toArray(new String[0]);
+    // 设定可写属性
     writablePropertyNames = setMethods.keySet().toArray(new String[0]);
+    // 将可读或者可写的属性放入大小写无关的属性映射表
     for (String propName : readablePropertyNames) {
       caseInsensitivePropertyMap.put(propName.toUpperCase(Locale.ENGLISH), propName);
     }
@@ -82,11 +98,20 @@ public class Reflector {
       .findAny().ifPresent(constructor -> this.defaultConstructor = constructor);
   }
 
+  /**
+   * 找出类中的 get 方法
+   * @param clazz 需要被反射处理的目标类
+   */
   private void addGetMethods(Class<?> clazz) {
+    // 存储属性的 get 方法。 Map 的键为属性名，值为 get 方法列表。
+    // 某个属性的 get 方法用列表存储是因为前期可能会为某一个属性找到多个可能的 get 方法
     Map<String, List<Method>> conflictingGetters = new HashMap<>();
+    // 找出该类中所有的方法
     Method[] methods = getClassMethods(clazz);
+    // 过滤 get 方法，过滤条件有： 输入参数、符合 Java Bean 的命名规则；然后取出方法对应的属性名、方法，放入 conflictingGetters
     Arrays.stream(methods).filter(m -> m.getParameterTypes().length == 0 && PropertyNamer.isGetter(m.getName()))
       .forEach(m -> addMethodConflict(conflictingGetters, PropertyNamer.methodToProperty(m.getName()), m));
+    // 如果一个属性有多个 疑似 get 方法，resolveGetterConflicts 用来找出合适的那个
     resolveGetterConflicts(conflictingGetters);
   }
 

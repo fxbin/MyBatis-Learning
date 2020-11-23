@@ -22,6 +22,8 @@ import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
 
 /**
  * @author Clinton Begin
+ *
+ * 只能使用默认值的 {@link MetaObject} 工厂
  */
 public final class SystemMetaObject {
 

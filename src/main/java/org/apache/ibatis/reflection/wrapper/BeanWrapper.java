@@ -31,15 +31,27 @@ import org.apache.ibatis.reflection.property.PropertyTokenizer;
  */
 public class BeanWrapper extends BaseWrapper {
 
+  // 被包装的对象
   private final Object object;
+  // 被包装对象所属类的元类
   private final MetaClass metaClass;
 
+  /**
+   *
+   * @param metaObject {@link MetaObject} 被包装对象的元对象，继承自父类 BaseWrapper
+   * @param object 被包装的对象
+   */
   public BeanWrapper(MetaObject metaObject, Object object) {
     super(metaObject);
     this.object = object;
     this.metaClass = MetaClass.forClass(object.getClass(), metaObject.getReflectorFactory());
   }
 
+  /**
+   * 获得被包装对象某个属性的值
+   * @param prop
+   * @return
+   */
   @Override
   public Object get(PropertyTokenizer prop) {
     if (prop.getIndex() != null) {
@@ -50,6 +62,12 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
+
+  /**
+   * 设置被包装对象某个属性的值
+   * @param prop
+   * @param value
+   */
   @Override
   public void set(PropertyTokenizer prop, Object value) {
     if (prop.getIndex() != null) {
@@ -60,21 +78,40 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
+  /**
+   * 找到对应的属性名称
+   * @param name
+   * @param useCamelCaseMapping
+   * @return
+   */
   @Override
   public String findProperty(String name, boolean useCamelCaseMapping) {
     return metaClass.findProperty(name, useCamelCaseMapping);
   }
 
+  /**
+   * 获得所有的属性 get 方法名称
+   * @return
+   */
   @Override
   public String[] getGetterNames() {
     return metaClass.getGetterNames();
   }
 
+  /**
+   * 获得所有属性的 set 方法名称
+   * @return
+   */
   @Override
   public String[] getSetterNames() {
     return metaClass.getSetterNames();
   }
 
+  /**
+   * 获得指定属性的 set 方法的类型
+   * @param name
+   * @return
+   */
   @Override
   public Class<?> getSetterType(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
@@ -90,6 +127,11 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
+  /**
+   * 获得指定属性的 get 方法的类型
+   * @param name
+   * @return
+   */
   @Override
   public Class<?> getGetterType(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
@@ -105,6 +147,11 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
+  /**
+   * 判断某个属性是否有对应的 set 方法
+   * @param name
+   * @return
+   */
   @Override
   public boolean hasSetter(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
@@ -124,6 +171,11 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
+  /**
+   * 判断某个属性是否有对应的 get 方法
+   * @param name
+   * @return
+   */
   @Override
   public boolean hasGetter(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
@@ -143,6 +195,13 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
+  /**
+   * 实例化某个属性的值
+   * @param name
+   * @param prop
+   * @param objectFactory
+   * @return
+   */
   @Override
   public MetaObject instantiatePropertyValue(String name, PropertyTokenizer prop, ObjectFactory objectFactory) {
     MetaObject metaValue;

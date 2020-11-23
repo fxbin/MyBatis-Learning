@@ -35,9 +35,16 @@ public class DefaultReflectorFactory implements ReflectorFactory {
     this.classCacheEnabled = classCacheEnabled;
   }
 
+  /**
+   * 生产 {@link Reflector} 对象
+   * @param type 目标类型
+   * @return 目标类型的 Reflector 对象
+   */
   @Override
   public Reflector findForClass(Class<?> type) {
+    // 允许缓存
     if (classCacheEnabled) {
+      // 生产输入参数 type 反射器对象，并放入缓存
       // synchronized (type) removed see issue #461
       return reflectorMap.computeIfAbsent(type, Reflector::new);
     } else {

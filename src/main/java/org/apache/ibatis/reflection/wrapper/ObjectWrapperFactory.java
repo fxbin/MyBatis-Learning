@@ -18,7 +18,9 @@ package org.apache.ibatis.reflection.wrapper;
 import org.apache.ibatis.reflection.MetaObject;
 
 /**
- * @author Clinton Begin
+ * @author Clinton
+ *
+ * 对象包装器工厂
  */
 public interface ObjectWrapperFactory {
 
