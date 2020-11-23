@@ -2,6 +2,7 @@ package org.apache.ibatis.reflection.property;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.apache.ibatis.reflection.model.User;
 import org.junit.jupiter.api.Test;
 
 /**

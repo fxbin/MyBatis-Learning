@@ -1,4 +1,6 @@
-package org.apache.ibatis.reflection.property;
+package org.apache.ibatis.reflection.model;
+
+import java.util.List;
 
 /**
  * User
@@ -7,11 +9,15 @@ package org.apache.ibatis.reflection.property;
  * @version v1.0
  * @since 2020/11/6 17:50
  */
-public class User {
+public class User<T> {
 
   private Integer id;
 
   private String name;
+
+  public List<T> getInfo() {
+    return null;
+  }
 
   public User() {
   }

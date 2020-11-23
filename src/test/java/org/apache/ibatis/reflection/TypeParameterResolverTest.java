@@ -30,6 +30,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.apache.ibatis.reflection.model.Student;
+import org.apache.ibatis.reflection.model.User;
 import org.apache.ibatis.reflection.typeparam.Calculator;
 import org.apache.ibatis.reflection.typeparam.Calculator.SubCalculator;
 import org.apache.ibatis.reflection.typeparam.Level0Mapper;
@@ -39,6 +41,16 @@ import org.apache.ibatis.reflection.typeparam.Level2Mapper;
 import org.junit.jupiter.api.Test;
 
 class TypeParameterResolverTest {
+
+  @Test
+  void testReturn_userAndStudentType() throws Exception {
+    Type userType = TypeParameterResolver.resolveReturnType(User.class.getMethod("getInfo"), User.class);
+    System.out.println("User 类中 getInfo 方法的输出结果类型：" + userType);
+
+    Type studentType = TypeParameterResolver.resolveReturnType(User.class.getMethod("getInfo"), Student.class);
+    System.out.println("Student 类中 getInfo 方法的输出结果类型：" + studentType);
+  }
+
   @Test
   void testReturn_Lv0SimpleClass() throws Exception {
     Class<?> clazz = Level0Mapper.class;
