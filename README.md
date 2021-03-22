@@ -20,8 +20,8 @@ Essentials
     - [X] `org.apache.ibatis.reflection.invoker`
     - [X] `org.apache.ibatis.reflection.property`
     - [X] `org.apache.ibatis.reflection.wrapper`
- - [ ] `org.apache.ibatis.lang`    
- - [ ] `org.apache.ibatis.annotations`    
+ - [X] `org.apache.ibatis.lang`    
+ - [X] `org.apache.ibatis.annotations`    
  - [ ] `org.apache.ibatis.type`    
  - [ ] `org.apache.ibatis.io`    
  - [ ] `org.apache.ibatis.logging`    

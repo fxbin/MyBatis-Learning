@@ -57,10 +57,13 @@ public class ParamNameResolver {
   // 该方法输入参数中是否含有 @Param 注解
   private boolean hasParamAnnotation;
 
+  // TODO debug 查看具体流程
   // 能够将目标方法的参数名称依次列举出来，如果参数存在 @Param 注解，则会用注解的 value 值替换参数名
   public ParamNameResolver(Configuration config, Method method) {
     this.useActualParamName = config.isUseActualParamName();
+    // 获取参数列表
     final Class<?>[] paramTypes = method.getParameterTypes();
+    // 准备存取所有参数的注解，二维数组
     final Annotation[][] paramAnnotations = method.getParameterAnnotations();
     final SortedMap<Integer, String> map = new TreeMap<>();
     int paramCount = paramAnnotations.length;
@@ -86,6 +89,7 @@ public class ParamNameResolver {
         if (name == null) {
           // use the parameter index as the name ("0", "1", ...)
           // gcode issue #71
+          // 参数名称取不到的话，就按照参数index 命名
           name = String.valueOf(map.size());
         }
       }
