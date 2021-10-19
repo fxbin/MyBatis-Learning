@@ -22,10 +22,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * 基本类型注册表
+ *
  * @author Clinton Begin
  */
 public class SimpleTypeRegistry {
 
+  /**
+   * 维护所有Java基本数据类型的集合
+   */
   private static final Set<Class<?>> SIMPLE_TYPE_SET = new HashSet<>();
 
   static {

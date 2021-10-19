@@ -19,6 +19,7 @@ import java.util.Iterator;
 
 /**
  * 属性标注器
+ * 负责解析由“.”和“[]”构成的表达式
  *
  * @author Clinton Begin
  */

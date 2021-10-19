@@ -21,6 +21,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
+ * 类型处理器接口
+ *
  * @author Clinton Begin
  */
 public interface TypeHandler<T> {

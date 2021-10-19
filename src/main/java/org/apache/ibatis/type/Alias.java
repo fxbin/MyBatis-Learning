@@ -24,6 +24,8 @@ import java.lang.annotation.Target;
 /**
  * The annotation that specify alias name.
  *
+ * 使用该注解可以给类设置别名，设置后，别名和类型的映射关系便存入 {@link TypeAliasRegistry}
+ *
  * <p>
  * <b>How to use:</b>
  * <pre>

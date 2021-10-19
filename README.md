@@ -22,7 +22,7 @@ Essentials
     - [X] `org.apache.ibatis.reflection.wrapper`
  - [X] `org.apache.ibatis.lang`    
  - [X] `org.apache.ibatis.annotations`    
- - [ ] `org.apache.ibatis.type`    
+ - [X] `org.apache.ibatis.type`    
  - [ ] `org.apache.ibatis.io`    
  - [ ] `org.apache.ibatis.logging`    
  - [ ] `org.apache.ibatis.parsing`    

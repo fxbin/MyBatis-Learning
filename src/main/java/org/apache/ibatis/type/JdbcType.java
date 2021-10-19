@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * 定义了所有的 JDBC 类型，类型来源于 {@link Types}
+ *
  * @author Clinton Begin
  */
 public enum JdbcType {
