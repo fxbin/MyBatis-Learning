@@ -46,10 +46,15 @@ import org.xml.sax.SAXParseException;
  */
 public class XPathParser {
 
+  // 代表要解析的整个 XML 文档
   private final Document document;
+  // 是否开启验证
   private boolean validation;
+  // 通过 EntityResolver 可以声明寻找 DTD 文件的方法，例如通过本地寻找，而不是只能通过网络下载 DTD 文件
   private EntityResolver entityResolver;
+  // Mybatis 配置文件中的 properties 节点的信息
   private Properties variables;
+  // javax.xml.xpath.Xpath 工具
   private XPath xpath;
 
   public XPathParser(String xml) {
@@ -140,8 +145,17 @@ public class XPathParser {
     return evalString(document, expression);
   }
 
+  /**
+   * 解析xml文件中的字符串
+   *
+   * @param root 解析根
+   * @param expression 解析的语句
+   * @return 解析出的字符串
+   */
   public String evalString(Object root, String expression) {
+    // 解析出字符串结果
     String result = (String) evaluate(expression, root, XPathConstants.STRING);
+    // 对字符串中的属性进行处理
     result = PropertyParser.parse(result, variables);
     return result;
   }
@@ -219,8 +233,17 @@ public class XPathParser {
     return new XNode(this, node, variables);
   }
 
+  /**
+   * 进行xml节点解析
+   *
+   * @param expression 解析的语句
+   * @param root 解析根
+   * @param returnType 返回值类型
+   * @return 解析结果
+   */
   private Object evaluate(String expression, Object root, QName returnType) {
     try {
+      // 对指定的节点 root 运行解析语法 expression, 获得 returnType 类型的解析结果
       return xpath.evaluate(expression, root, returnType);
     } catch (Exception e) {
       throw new BuilderException("Error evaluating XPath.  Cause: " + e, e);

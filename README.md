@@ -25,7 +25,7 @@ Essentials
  - [X] `org.apache.ibatis.type`    
  - [X] `org.apache.ibatis.io`    
  - [X] `org.apache.ibatis.logging`    
- - [ ] `org.apache.ibatis.parsing`    
+ - [X] `org.apache.ibatis.parsing`    
  
 配置解析包
 ------ 
