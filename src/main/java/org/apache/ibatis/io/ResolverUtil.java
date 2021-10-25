@@ -101,7 +101,10 @@ public class ResolverUtil<T> {
       this.parent = parentType;
     }
 
-    /** Returns true if type is assignable to the parent type supplied in the constructor. */
+    /**
+     * Returns true if type is assignable to the parent type supplied in the constructor.
+     * 判断目标类是否实现了某个接口或者继承了某个类
+     */
     @Override
     public boolean matches(Class<?> type) {
       return type != null && parent.isAssignableFrom(type);
@@ -132,7 +135,10 @@ public class ResolverUtil<T> {
       this.annotation = annotation;
     }
 
-    /** Returns true if the type is annotated with the class provided to the constructor. */
+    /**
+     * Returns true if the type is annotated with the class provided to the constructor.
+     * 判断目标类是否具有某个注解
+     */
     @Override
     public boolean matches(Class<?> type) {
       return type != null && type.isAnnotationPresent(annotation);
@@ -244,12 +250,16 @@ public class ResolverUtil<T> {
    * @return the resolver util
    */
   public ResolverUtil<T> find(Test test, String packageName) {
+    // 获取起始包路径
     String path = getPackagePath(packageName);
 
     try {
+      // 找出包中的各个文件
       List<String> children = VFS.getInstance().list(path);
       for (String child : children) {
+        // 测试筛选类文件
         if (child.endsWith(".class")) {
+          // 测试是否满足测试条件，如果满足，则将该类文件记录下来
           addIfMatching(test, child);
         }
       }
@@ -282,14 +292,18 @@ public class ResolverUtil<T> {
   @SuppressWarnings("unchecked")
   protected void addIfMatching(Test test, String fqn) {
     try {
+      // 转化为外部名称
       String externalName = fqn.substring(0, fqn.indexOf('.')).replace('/', '.');
+      // 类加载器
       ClassLoader loader = getClassLoader();
       if (log.isDebugEnabled()) {
         log.debug("Checking to see if class " + externalName + " matches criteria [" + test + "]");
       }
 
+      // 加载类文件
       Class<?> type = loader.loadClass(externalName);
       if (test.matches(type)) {
+        // 测试通过则记录到 matches 属性中
         matches.add((Class<T>) type);
       }
     } catch (Throwable t) {

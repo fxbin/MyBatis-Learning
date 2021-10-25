@@ -177,12 +177,14 @@ public class ClassLoaderWrapper {
    */
   Class<?> classForName(String name, ClassLoader[] classLoader) throws ClassNotFoundException {
 
+    // 对五种类加载器依次进行尝试
     for (ClassLoader cl : classLoader) {
 
       if (null != cl) {
 
         try {
 
+          // 使用当前类加载器尝试是否能够加载成功
           return Class.forName(name, true, cl);
 
         } catch (ClassNotFoundException e) {
@@ -192,11 +194,23 @@ public class ClassLoaderWrapper {
       }
 
     }
-
+    // 所有类加载器均寻找失败，抛出异常
     throw new ClassNotFoundException("Cannot find class: " + name);
 
   }
 
+  /**
+   * 获取所有的类加载器
+   * 五种类加载器依次是：
+   * 1. 作为参数传入的类加载器，可能为 null
+   * 2. 系统默认的类加载器，如未设置则为 null
+   * 3. 当前线程上下文中的类加载器
+   * 4. 当前对象的类加载器
+   * 5. 系统类加载器，在 ClassLoaderWrapper 的构造方法中设置
+   *
+   * @param classLoader 传入的一种类加载器
+   * @return 所有类加载器的列表
+   */
   ClassLoader[] getClassLoaders(ClassLoader classLoader) {
     return new ClassLoader[]{
         classLoader,

@@ -23,7 +23,7 @@ Essentials
  - [X] `org.apache.ibatis.lang`    
  - [X] `org.apache.ibatis.annotations`    
  - [X] `org.apache.ibatis.type`    
- - [ ] `org.apache.ibatis.io`    
+ - [X] `org.apache.ibatis.io`    
  - [X] `org.apache.ibatis.logging`    
  - [ ] `org.apache.ibatis.parsing`    
  

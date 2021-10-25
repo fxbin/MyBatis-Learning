@@ -45,6 +45,12 @@ public class JBoss6VFS extends VFS {
       this.virtualFile = virtualFile;
     }
 
+    /**
+     * 获取相关的路径名
+     *
+     * @param parent 父级路径名
+     * @return 相关路径名
+     */
     String getPathNameRelativeTo(VirtualFile parent) {
       try {
         return invoke(getPathNameRelativeTo, virtualFile, parent.virtualFile);
@@ -83,16 +89,22 @@ public class JBoss6VFS extends VFS {
   /** Flag that indicates if this VFS is valid for the current environment. */
   private static Boolean valid;
 
-  /** Find all the classes and methods that are required to access the JBoss 6 VFS. */
+  /**
+   * Find all the classes and methods that are required to access the JBoss 6 VFS.
+   * 初始化 Jboss6VFS类，主要是根据被代理类是否存在来判断自身是否可用
+   */
   protected static synchronized void initialize() {
     if (valid == null) {
+      // 首先假设可以使用
       // Assume valid. It will get flipped later if something goes wrong.
       valid = Boolean.TRUE;
 
+      // 校验所需要的类是否存在，如果不存在，则  valid 设置为 false
       // Look up and verify required classes
       VFS.VFS = checkNotNull(getClass("org.jboss.vfs.VFS"));
       VirtualFile.VirtualFile = checkNotNull(getClass("org.jboss.vfs.VirtualFile"));
 
+      // 校验所需要的方法是否存在，如果不存在，则 valid 设置为 false
       // Look up and verify required methods
       VFS.getChild = checkNotNull(getMethod(VFS.VFS, "getChild", URL.class));
       VirtualFile.getChildrenRecursively = checkNotNull(getMethod(VirtualFile.VirtualFile,
@@ -100,6 +112,7 @@ public class JBoss6VFS extends VFS {
       VirtualFile.getPathNameRelativeTo = checkNotNull(getMethod(VirtualFile.VirtualFile,
           "getPathNameRelativeTo", VirtualFile.VirtualFile));
 
+      // 判断以上所需方法的返回值是否和预期一致，如果不一致，则 valid 设置为 false
       // Verify that the API has not changed
       checkReturnType(VFS.getChild, VirtualFile.VirtualFile);
       checkReturnType(VirtualFile.getChildrenRecursively, List.class);
