@@ -67,22 +67,31 @@ public final class ResultSetLogger extends BaseJdbcLogger implements InvocationH
         return method.invoke(this, params);
       }
       Object o = method.invoke(rs, params);
+      // 针对 ResultSet.next() 方法进行后置处理
       if ("next".equals(method.getName())) {
+        // 检测 next() 方法的返回值，确定是否存在下一行数据
         if ((Boolean) o) {
+          // 记录 ResultSet 中的行数
           rows++;
           if (isTraceEnabled()) {
+            // 获取数据集的列元数据
             ResultSetMetaData rsmd = rs.getMetaData();
             final int columnCount = rsmd.getColumnCount();
+            // 如果是数据集的第一行，会输出表头信息
             if (first) {
               first = false;
+              // 除了输出表头，还会记录 BLOB 大类型的列名
               printColumnHeaders(rsmd, columnCount);
             }
+            // 输出当前遍历的这行记录，这里会对过滤掉超大类型的数据，不进行输出
             printColumnValues(columnCount);
           }
         } else {
+          // 完成结果集的遍历之后，这里会在日志中输出总行数
           debug("     Total: " + rows, false);
         }
       }
+      // 清空 column* 集合
       clearColumnInfo();
       return o;
     } catch (Throwable t) {

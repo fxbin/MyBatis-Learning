@@ -99,11 +99,14 @@ public final class LogFactory {
 
   private static void setImplementation(Class<? extends Log> implClass) {
     try {
+      // 获取 implClass 适配器的构造方法
       Constructor<? extends Log> candidate = implClass.getConstructor(String.class);
+      // 尝试加载 implClass 这个适配器，加载失败会抛出异常
       Log log = candidate.newInstance(LogFactory.class.getName());
       if (log.isDebugEnabled()) {
         log.debug("Logging initialized using '" + implClass + "' adapter.");
       }
+      // 加载成功，则更新 logConstructor 字段，记录适配器的构造方法
       logConstructor = candidate;
     } catch (Throwable t) {
       throw new LogException("Error setting Log implementation.  Cause: " + t, t);

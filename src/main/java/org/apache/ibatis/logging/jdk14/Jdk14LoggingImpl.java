@@ -25,9 +25,13 @@ import org.apache.ibatis.logging.Log;
  */
 public class Jdk14LoggingImpl implements Log {
 
+  /**
+   * 指向一个java.util.logging.Logger对象
+   */
   private final Logger log;
 
   public Jdk14LoggingImpl(String clazz) {
+    // 初始化 log 字段
     log = Logger.getLogger(clazz);
   }
 
