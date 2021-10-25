@@ -34,19 +34,34 @@ import org.apache.ibatis.session.SqlSession;
 public class MapperRegistry {
 
   private final Configuration config;
+
+  /**
+   * 其键为映射接口，值为对应的MapperProxyFactory对象
+   */
   private final Map<Class<?>, MapperProxyFactory<?>> knownMappers = new HashMap<>();
 
   public MapperRegistry(Configuration config) {
     this.config = config;
   }
 
+
+  /**
+   * getMapper, 找到指定映射接口的映射文件，并根据映射文件信息为该接口生成一个代理实现
+   *
+   * @param type 映射接口
+   * @param sqlSession sqlSession
+   * @param <T> 映射接口类型
+   * @return {@link T} 代理实现对象
+   */
   @SuppressWarnings("unchecked")
   public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
+    // 找出指定映射接口的代理工厂
     final MapperProxyFactory<T> mapperProxyFactory = (MapperProxyFactory<T>) knownMappers.get(type);
     if (mapperProxyFactory == null) {
       throw new BindingException("Type " + type + " is not known to the MapperRegistry.");
     }
     try {
+      // 通过 mapperProxyFactory 给出对应代理器的实例
       return mapperProxyFactory.newInstance(sqlSession);
     } catch (Exception e) {
       throw new BindingException("Error getting mapper instance. Cause: " + e, e);

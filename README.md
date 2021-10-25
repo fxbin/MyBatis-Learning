@@ -28,4 +28,9 @@ Essentials
  - [X] `org.apache.ibatis.parsing`    
  
 配置解析包
------- 
+------
+- [X] `org.apache.ibatis.binding`
+- [ ] `org.apache.ibatis.builder`
+- [ ] `org.apache.ibatis.mapping`
+- [ ] `org.apache.ibatis.scripting`
+- [ ] `org.apache.ibatis.datasource`

@@ -15,5 +15,9 @@
  */
 /**
  * Bings mapper interfaces with mapped statements.
+ *
+ * 1. 维护映射接口中抽象方法与数据库操作节点之间的关系
+ * 2. 为映射接口中的抽象方法接入对应的数据库功能
+ *
  */
 package org.apache.ibatis.binding;

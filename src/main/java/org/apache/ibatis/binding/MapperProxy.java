@@ -30,6 +30,8 @@ import org.apache.ibatis.reflection.ExceptionUtil;
 import org.apache.ibatis.session.SqlSession;
 
 /**
+ * 对应映射文件
+ *
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
@@ -42,6 +44,10 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
   private static final Method privateLookupInMethod;
   private final SqlSession sqlSession;
   private final Class<T> mapperInterface;
+
+  // 该 map 的键为方法，值为 MapperMethodInvoker 接口，通过该属性，
+  // 完成 MapperProxy 内 (即映射接口内) 方法和 MapperMethod 的绑定
+  // MapperRegistry --> MapperProxyFactory --> MapperProxy
   private final Map<Method, MapperMethodInvoker> methodCache;
 
   public MapperProxy(SqlSession sqlSession, Class<T> mapperInterface, Map<Method, MapperMethodInvoker> methodCache) {
@@ -80,8 +86,10 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
       if (Object.class.equals(method.getDeclaringClass())) {
+        // 执行原方法
         return method.invoke(this, args);
       } else {
+        // 查找 MapperMethodInvoker ，不存在则加入 cache
         return cachedInvoker(method).invoke(proxy, method, args, sqlSession);
       }
     } catch (Throwable t) {
@@ -112,6 +120,7 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
             throw new RuntimeException(e);
           }
         } else {
+          // 调用 execute 方法
           return new PlainMethodInvoker(new MapperMethod(mapperInterface, method, sqlSession.getConfiguration()));
         }
       });
