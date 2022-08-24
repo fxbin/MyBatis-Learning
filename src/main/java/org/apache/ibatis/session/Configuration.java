@@ -166,6 +166,13 @@ public class Configuration {
   protected final Set<String> loadedResources = new HashSet<>();
   protected final Map<String, XNode> sqlFragments = new StrictMap<>("XML fragments parsed from previous mappers");
 
+
+  /**
+   * 存储暂时性错误的节点；在第一次解析完成后，再处理一遍这些错误节点即可
+   * 无序依赖的常见解决方法：处理第一轮解析时依赖寻找失败的节点。由于已经在第一遍解析时读入了所有节点，因此第二遍解析的依赖总是可以找到的。
+   *
+   * 另外一种， Spring 初始化时对 Bean 的循环依赖的处理方式； 第一轮先读取所有节点，之后在处理依赖关系
+   */
   protected final Collection<XMLStatementBuilder> incompleteStatements = new LinkedList<>();
   protected final Collection<CacheRefResolver> incompleteCacheRefs = new LinkedList<>();
   protected final Collection<ResultMapResolver> incompleteResultMaps = new LinkedList<>();

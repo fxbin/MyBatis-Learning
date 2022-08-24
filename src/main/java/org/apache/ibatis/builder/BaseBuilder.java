@@ -119,6 +119,14 @@ public abstract class BaseBuilder {
     }
   }
 
+
+  /**
+   *
+   * 根据类型处理器别名返回类型处理器实例
+   *
+   * @param javaType
+   * @param typeHandlerAlias 类型处理器别名
+   */
   protected TypeHandler<?> resolveTypeHandler(Class<?> javaType, String typeHandlerAlias) {
     if (typeHandlerAlias == null) {
       return null;

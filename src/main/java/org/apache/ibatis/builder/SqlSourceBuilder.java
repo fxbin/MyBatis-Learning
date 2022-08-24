@@ -26,10 +26,22 @@ import org.apache.ibatis.parsing.GenericTokenParser;
 import org.apache.ibatis.parsing.TokenHandler;
 import org.apache.ibatis.reflection.MetaClass;
 import org.apache.ibatis.reflection.MetaObject;
+import org.apache.ibatis.scripting.xmltags.DynamicContext;
+import org.apache.ibatis.scripting.xmltags.SqlNode;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.JdbcType;
 
 /**
+ *
+ * <p>
+ *
+ *   关注以下几个类|方法
+ *   {@link org.apache.ibatis.scripting.xmltags.DynamicSqlSource}
+ *   {@link org.apache.ibatis.scripting.defaults.RawSqlSource}
+ *   {@link StaticSqlSource}
+ *   {@link SqlSourceBuilder#parse(String, Class, Map)}
+ * </p>
+ *
  * @author Clinton Begin
  */
 public class SqlSourceBuilder extends BaseBuilder {
@@ -40,10 +52,21 @@ public class SqlSourceBuilder extends BaseBuilder {
     super(configuration);
   }
 
+  /**
+   * 替换“#{}”符号，转化为 {@link StaticSqlSource}
+   *
+   * @param originalSql {@link SqlNode#apply(DynamicContext)}拼接之后的SQL语句. 已经不包含<if><where> 等级节点，也不包含 "${}"
+   * @param parameterType 实参类型
+   * @param additionalParameters 附加参数
+   * @return 解析结果 {@link StaticSqlSource}
+   */
   public SqlSource parse(String originalSql, Class<?> parameterType, Map<String, Object> additionalParameters) {
+    // 用来完成 #{} 处理的处理器
     ParameterMappingTokenHandler handler = new ParameterMappingTokenHandler(configuration, parameterType, additionalParameters);
+    // 通用的占位符解析器，用来进行占位符替换
     GenericTokenParser parser = new GenericTokenParser("#{", "}", handler);
     String sql;
+
     if (configuration.isShrinkWhitespacesInSql()) {
       sql = parser.parse(removeExtraWhitespaces(originalSql));
     } else {

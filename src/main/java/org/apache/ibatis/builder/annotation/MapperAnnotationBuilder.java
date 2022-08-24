@@ -112,11 +112,18 @@ public class MapperAnnotationBuilder {
     this.type = type;
   }
 
+  /**
+   * 解析包含注解的接口
+   */
   public void parse() {
     String resource = type.toString();
+    // 防止重复解析
     if (!configuration.isResourceLoaded(resource)) {
+      // 寻找类名对应的resource 路径下是否有 xml 配置， 如果有则进行解析，实现 注解 与 xml 的混用
       loadXmlResource();
+      // 记录资源路径
       configuration.addLoadedResource(resource);
+      // 设置命名空间
       assistant.setCurrentNamespace(type.getName());
       parseCache();
       parseCacheRef();
@@ -131,10 +138,12 @@ public class MapperAnnotationBuilder {
         try {
           parseStatement(method);
         } catch (IncompleteElementException e) {
+          // 暂存异常方法
           configuration.addIncompleteMethod(new MethodResolver(this, method));
         }
       }
     }
+    // 处理解析异常
     parsePendingMethods();
   }
 
@@ -293,10 +302,20 @@ public class MapperAnnotationBuilder {
     return null;
   }
 
+
+  /**
+   * 解析方法注解信息
+   *
+   * @param method 要解析的方法
+   */
   void parseStatement(Method method) {
+    // 获取参数类型
     final Class<?> parameterTypeClass = getParameterType(method);
+    // 获取方法的脚本语言驱动
     final LanguageDriver languageDriver = getLanguageDriver(method);
 
+    // 参见：org.apache.ibatis.builder.annotation.MapperAnnotationBuilder.getAnnotationWrapper(java.lang.reflect.Method, boolean, java.util.Collection<java.lang.Class<? extends java.lang.annotation.Annotation>>)
+    // 构建 AnnotationWrapper 类
     getAnnotationWrapper(method, true, statementAnnotationTypes).ifPresent(statementAnnotation -> {
       final SqlSource sqlSource = buildSqlSource(statementAnnotation.getAnnotation(), parameterTypeClass, languageDriver, method);
       final SqlCommandType sqlCommandType = statementAnnotation.getSqlCommandType();
@@ -630,6 +649,14 @@ public class MapperAnnotationBuilder {
     return new ProviderSqlSource(assistant.getConfiguration(), annotation, type, method);
   }
 
+  /**
+   * 基于字符串创建 SqlSource 对象
+   *
+   * @param strings 字符串，即直接映射注解中的字符串
+   * @param parameterTypeClass 参数类型
+   * @param languageDriver 语言驱动
+   * @return SqlSource 对象
+   */
   private SqlSource buildSqlSourceFromStrings(String[] strings, Class<?> parameterTypeClass,
       LanguageDriver languageDriver) {
     return languageDriver.createSqlSource(configuration, String.join(" ", strings).trim(), parameterTypeClass);

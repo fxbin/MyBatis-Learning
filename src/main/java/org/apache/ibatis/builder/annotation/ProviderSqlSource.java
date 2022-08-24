@@ -35,14 +35,45 @@ import org.apache.ibatis.session.Configuration;
  */
 public class ProviderSqlSource implements SqlSource {
 
+  /**
+   * Configuration 对象
+   */
   private final Configuration configuration;
+
+  /**
+   * *Provider 注解上 type 属性所指的类
+   */
   private final Class<?> providerType;
   private final LanguageDriver languageDriver;
+
+  /**
+   * 含有注解的接口方法
+   */
   private final Method mapperMethod;
+
+  /**
+   * *Provider 注解上 method 属性所指的方法
+   */
   private final Method providerMethod;
+
+  /**
+   * 给定 SQL 语句的方法对应的参数
+   */
   private final String[] providerMethodArgumentNames;
+
+  /**
+   * 参数类型
+   */
   private final Class<?>[] providerMethodParameterTypes;
+
+  /**
+   * ProviderContext 对象
+   */
   private final ProviderContext providerContext;
+
+  /**
+   * ProviderContext 对象编号
+   */
   private final Integer providerContextIndex;
 
   /**
@@ -159,15 +190,18 @@ public class ProviderSqlSource implements SqlSource {
 
   private SqlSource createSqlSource(Object parameterObject) {
     try {
+      // SQL 字符串信息
       String sql;
       if (parameterObject instanceof Map) {
         int bindParameterCount = providerMethodParameterTypes.length - (providerContext == null ? 0 : 1);
         if (bindParameterCount == 1
             && providerMethodParameterTypes[Integer.valueOf(0).equals(providerContextIndex) ? 1 : 0].isAssignableFrom(parameterObject.getClass())) {
+          // 调用 *Provider 注解的 type 类中的 method 方法，从而获得 SQL字符串
           sql = invokeProviderMethod(extractProviderMethodArguments(parameterObject));
         } else {
           @SuppressWarnings("unchecked")
           Map<String, Object> params = (Map<String, Object>) parameterObject;
+          // 调用 *Provider 注解的 type 类中的 method 方法，从而获得 SQL字符串
           sql = invokeProviderMethod(extractProviderMethodArguments(params, providerMethodArgumentNames));
         }
       } else if (providerMethodParameterTypes.length == 0) {
@@ -186,6 +220,7 @@ public class ProviderSqlSource implements SqlSource {
           + "' because SqlProvider method arguments for '" + mapperMethod + "' is an invalid combination.");
       }
       Class<?> parameterType = parameterObject == null ? Object.class : parameterObject.getClass();
+      // 生成 SqlSource 对象
       return languageDriver.createSqlSource(configuration, sql, parameterType);
     } catch (BuilderException e) {
       throw e;

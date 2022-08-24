@@ -103,6 +103,14 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return currentNamespace + "." + base;
   }
 
+
+  /**
+   *
+   * 使用其它namespace 的缓存
+   *
+   * @param namespace 其它namespace
+   * @return 其它命名空间 Cache
+   */
   public Cache useCacheRef(String namespace) {
     if (namespace == null) {
       throw new BuilderException("cache-ref element requires a namespace attribute.");
@@ -113,6 +121,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
       if (cache == null) {
         throw new IncompleteElementException("No cache for namespace '" + namespace + "' could be found.");
       }
+      // 修改当前缓存为 其它 namespace 的缓存，实现缓存共享
       currentCache = cache;
       unresolvedCacheRef = false;
       return cache;
@@ -121,6 +130,19 @@ public class MapperBuilderAssistant extends BaseBuilder {
     }
   }
 
+  /**
+   *
+   * 创建一个新的缓存
+   *
+   * @param typeClass 缓存的实现类
+   * @param evictionClass 缓存的清理类，即使用哪种包装类来清理缓存
+   * @param flushInterval 缓存清理时间间隔
+   * @param size 缓存大小
+   * @param readWrite 缓存是否支持读写
+   * @param blocking 缓存是否支持阻塞
+   * @param props 缓存配置属性
+   * @return 缓存
+   */
   public Cache useNewCache(Class<? extends Cache> typeClass,
       Class<? extends Cache> evictionClass,
       Long flushInterval,
@@ -173,6 +195,12 @@ public class MapperBuilderAssistant extends BaseBuilder {
         .build();
   }
 
+  /**
+   *
+   * 创建结果映射对象，输入参数参照 ResultMap 属性
+   *
+   * @return {@link ResultMap} 对象
+   */
   public ResultMap addResultMap(
       String id,
       Class<?> type,
@@ -183,11 +211,17 @@ public class MapperBuilderAssistant extends BaseBuilder {
     id = applyCurrentNamespace(id, false);
     extend = applyCurrentNamespace(extend, true);
 
+
+    // 解析继承关系
     if (extend != null) {
       if (!configuration.hasResultMap(extend)) {
         throw new IncompleteElementException("Could not find a parent resultmap with id '" + extend + "'");
       }
+
+      // 获取父级的 ResultMap
       ResultMap resultMap = configuration.getResultMap(extend);
+
+      // 获取父级的 ResultMap
       List<ResultMapping> extendedResultMappings = new ArrayList<>(resultMap.getResultMappings());
       extendedResultMappings.removeAll(resultMappings);
       // Remove parent constructor if this resultMap declares a constructor.

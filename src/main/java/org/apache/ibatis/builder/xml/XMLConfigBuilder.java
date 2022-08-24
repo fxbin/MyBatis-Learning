@@ -91,15 +91,27 @@ public class XMLConfigBuilder extends BaseBuilder {
     this.parser = parser;
   }
 
+  /**
+   *
+   * 解析配置文件的入口方法
+   *
+   * @return {@link Configuration} 对象
+   */
   public Configuration parse() {
+    // 不允许重复解析
     if (parsed) {
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
     parsed = true;
+    // 从根节点开展解析
     parseConfiguration(parser.evalNode("/configuration"));
     return configuration;
   }
 
+  /**
+   * 从跟节点 configuration 开始解析下层节点
+   * @param root 根节点 configuration 节点
+   */
   private void parseConfiguration(XNode root) {
     try {
       // issue #117 read properties first
@@ -360,27 +372,44 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 解析 mappers 节点
+   *
+   * <mappers>
+   *    <mapper resource="xxx.xml"/>
+   *    <package name=“com.xxx” />
+   * </mappers>
+   *
+   * @param parent mappers 节点
+   * @throws Exception
+   */
   private void mapperElement(XNode parent) throws Exception {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
         if ("package".equals(child.getName())) {
+          // 取出包路径
           String mapperPackage = child.getStringAttribute("name");
           configuration.addMappers(mapperPackage);
         } else {
+          // resource, url, class 这三个属性只有一个生效
           String resource = child.getStringAttribute("resource");
           String url = child.getStringAttribute("url");
           String mapperClass = child.getStringAttribute("class");
           if (resource != null && url == null && mapperClass == null) {
             ErrorContext.instance().resource(resource);
+            // 获取文件的输入流
             InputStream inputStream = Resources.getResourceAsStream(resource);
+            // XMLMapperBuilder 解析映射文件
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
             mapperParser.parse();
           } else if (resource == null && url != null && mapperClass == null) {
             ErrorContext.instance().resource(url);
+            // 从网络获取输入流
             InputStream inputStream = Resources.getUrlAsStream(url);
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url, configuration.getSqlFragments());
             mapperParser.parse();
           } else if (resource == null && url == null && mapperClass != null) {
+            // 映射接口
             Class<?> mapperInterface = Resources.classForName(mapperClass);
             configuration.addMapper(mapperInterface);
           } else {
