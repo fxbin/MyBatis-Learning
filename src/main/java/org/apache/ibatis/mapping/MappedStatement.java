@@ -29,6 +29,13 @@ import org.apache.ibatis.scripting.LanguageDriver;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ *
+ * <p>
+ *   数据库操作节点 （select, insert, update, delete）四类节点的所有内容
+ *
+ *   MappedStatement  --> SqlSource  --> BoundSql
+ * </p>
+ *
  * @author Clinton Begin
  */
 public final class MappedStatement {

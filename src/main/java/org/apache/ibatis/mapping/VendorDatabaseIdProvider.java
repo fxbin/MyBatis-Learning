@@ -59,8 +59,17 @@ public class VendorDatabaseIdProvider implements DatabaseIdProvider {
     this.properties = p;
   }
 
+  /**
+   * 获取当前数据源类型的别名
+   *
+   * @param dataSource 数据源
+   * @return 数据源类型别名
+   * @throws SQLException
+   */
   private String getDatabaseName(DataSource dataSource) throws SQLException {
+    // 获取当前连接的数据库名
     String productName = getDatabaseProductName(dataSource);
+    // 如果设置有 properties 值，则将获取的数据库名称作为模糊的 key, 映射为对应的 value
     if (this.properties != null) {
       for (Map.Entry<Object, Object> property : properties.entrySet()) {
         if (productName.contains((String) property.getKey())) {

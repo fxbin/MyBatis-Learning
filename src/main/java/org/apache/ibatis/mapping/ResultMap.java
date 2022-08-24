@@ -37,17 +37,64 @@ import org.apache.ibatis.session.Configuration;
 public class ResultMap {
   private Configuration configuration;
 
+  /**
+   * resultMap 的编号
+   */
   private String id;
+
+  /**
+   * 最终输出结果对应的Java类
+   */
   private Class<?> type;
+
+  /**
+   * XML 中的 <result> 的列表，即 ResultMapping 列表
+   */
   private List<ResultMapping> resultMappings;
+
+  /**
+   * XML 中的 <id> 和 <idArg> 的列表
+   */
   private List<ResultMapping> idResultMappings;
+
+  /**
+   * XML 中的 <constructor> 中各个属性的列表
+   */
   private List<ResultMapping> constructorResultMappings;
+
+  /**
+   * XML 中的 非<constructor> 相关的属性列表
+   */
   private List<ResultMapping> propertyResultMappings;
+
+  /**
+   * 所有参与映射的数据库中字段的集合
+   */
   private Set<String> mappedColumns;
+
+  /**
+   * 所有参与映射的Java对象属性的集合
+   */
   private Set<String> mappedProperties;
+
+  /**
+   * 鉴别器
+   */
   private Discriminator discriminator;
+
+  /**
+   * 是否存在嵌套关系
+   */
   private boolean hasNestedResultMaps;
+
+  /**
+   * 是否存在嵌套查询
+   */
   private boolean hasNestedQueries;
+
+  /**
+   * 是否自动映射
+   */
   private Boolean autoMapping;
 
   private ResultMap() {

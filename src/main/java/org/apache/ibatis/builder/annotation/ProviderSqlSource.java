@@ -30,6 +30,10 @@ import org.apache.ibatis.scripting.LanguageDriver;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ * <p>
+ *   注解映射获取的SQL
+ * </p>
+ *
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */

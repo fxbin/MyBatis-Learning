@@ -29,6 +29,10 @@ import org.apache.ibatis.session.Configuration;
  * Static SqlSource. It is faster than {@link DynamicSqlSource} because mappings are
  * calculated during startup.
  *
+ * <p>
+ *   原生SQL语句，包含 “#{}” 占位符，但是不包含动态SQL节点，也不包含 “${}” 占位符
+ * </p>
+ *
  * @since 3.2.0
  * @author Eduardo Macarron
  */

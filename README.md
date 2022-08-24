@@ -31,6 +31,6 @@ Essentials
 ------
 - [X] `org.apache.ibatis.binding`
 - [X] `org.apache.ibatis.builder`
-- [ ] `org.apache.ibatis.mapping`
+- [X] `org.apache.ibatis.mapping`
 - [ ] `org.apache.ibatis.scripting`
 - [ ] `org.apache.ibatis.datasource`

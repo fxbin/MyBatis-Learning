@@ -21,6 +21,11 @@ import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ *
+ * <p>
+ *   动态SQL语句，动态 SQL是指含有动态 SQL节点（如“if”节点）或者含有“${}”占位符的语句。
+ * </p>
+ *
  * @author Clinton Begin
  */
 public class DynamicSqlSource implements SqlSource {
