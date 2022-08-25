@@ -471,7 +471,15 @@ public abstract class AbstractSQL<T> {
   }
 
   private static class SafeAppendable {
+
+    /**
+     * 主串
+     */
     private final Appendable appendable;
+
+    /***
+     * 主串是否为空
+     */
     private boolean empty = true;
 
     public SafeAppendable(Appendable a) {
@@ -479,6 +487,12 @@ public abstract class AbstractSQL<T> {
       this.appendable = a;
     }
 
+    /**
+     * 向主串拼接一段字符串
+     *
+     * @param s 被拼接的字符串
+     * @return SafeAppendable 内部类自身 {@link SafeAppendable}
+     */
     public SafeAppendable append(CharSequence s) {
       try {
         if (empty && s.length() > 0) {
@@ -553,9 +567,17 @@ public abstract class AbstractSQL<T> {
     List<String> lastList = new ArrayList<>();
     List<String> columns = new ArrayList<>();
     List<List<String>> valuesList = new ArrayList<>();
+
+    // 标识是否去重
     boolean distinct;
+
+    // 结果偏移量
     String offset;
+
+    // 结果约束总数
     String limit;
+
+    // 结果约束策略
     LimitingRowsStrategy limitingRowsStrategy = LimitingRowsStrategy.NOP;
 
     public SQLStatement() {
@@ -635,6 +657,12 @@ public abstract class AbstractSQL<T> {
       return builder.toString();
     }
 
+    /**
+     * 根据语句类型，调用不同的语句拼接器拼接SQL语句
+     *
+     * @param a 起始字符串
+     * @return 拼接结果
+     */
     public String sql(Appendable a) {
       SafeAppendable builder = new SafeAppendable(a);
       if (statementType == null) {

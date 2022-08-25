@@ -220,14 +220,26 @@ public class SqlRunner {
     }
   }
 
+  /**
+   * 处理数据库操作的返回结果
+   *
+   * @param rs 返回的结果
+   * @return 处理后的结果列表
+   * @throws SQLException
+   */
   private List<Map<String, Object>> getResults(ResultSet rs) throws SQLException {
     try {
       List<Map<String, Object>> list = new ArrayList<>();
+      // 返回结果的字段名列表，按照字段顺序排列
       List<String> columns = new ArrayList<>();
+      // 返回结果的类型处理器列表，按照字段顺序配列
       List<TypeHandler<?>> typeHandlers = new ArrayList<>();
+      // 获取返回结果的表信息、字段信息
       ResultSetMetaData rsmd = rs.getMetaData();
       for (int i = 0, n = rsmd.getColumnCount(); i < n; i++) {
+        // 记录字段名
         columns.add(rsmd.getColumnLabel(i + 1));
+        // 记录字段的对应类型处理器
         try {
           Class<?> type = Resources.classForName(rsmd.getColumnClassName(i + 1));
           TypeHandler<?> typeHandler = typeHandlerRegistry.getTypeHandler(type);
@@ -236,14 +248,20 @@ public class SqlRunner {
           }
           typeHandlers.add(typeHandler);
         } catch (Exception e) {
+          // 默认的类型处理器是 Object 处理器
           typeHandlers.add(typeHandlerRegistry.getTypeHandler(Object.class));
         }
       }
+
+      // 循环处理结果
       while (rs.next()) {
         Map<String, Object> row = new HashMap<>();
         for (int i = 0, n = columns.size(); i < n; i++) {
+          // 字段名
           String name = columns.get(i);
+          // 对应的处理器
           TypeHandler<?> handler = typeHandlers.get(i);
+          // 放入结果集， key 为字段大写， value 为结果值
           row.put(name.toUpperCase(Locale.ENGLISH), handler.getResult(rs, name));
         }
         list.add(row);

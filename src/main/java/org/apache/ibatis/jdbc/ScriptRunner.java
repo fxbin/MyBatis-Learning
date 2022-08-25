@@ -116,6 +116,7 @@ public class ScriptRunner {
       if (sendFullScript) {
         executeFullScript(reader);
       } else {
+        // 逐行执行
         executeLineByLine(reader);
       }
     } finally {
@@ -123,7 +124,13 @@ public class ScriptRunner {
     }
   }
 
+  /**
+   * 全脚本执行
+   *
+   * @param reader 脚本
+   */
   private void executeFullScript(Reader reader) {
+    // 脚本全文
     StringBuilder script = new StringBuilder();
     try {
       BufferedReader lineReader = new BufferedReader(reader);
@@ -132,9 +139,12 @@ public class ScriptRunner {
         script.append(line);
         script.append(LINE_SEPARATOR);
       }
+      // 拼接为一条命令
       String command = script.toString();
       println(command);
+      // 执行命令
       executeStatement(command);
+      // 如果没有启用自动提交，则进行提交，（脚本中可能修改了自动提交的设置）
       commitConnection();
     } catch (Exception e) {
       String message = "Error executing: " + script + ".  Cause: " + e;
