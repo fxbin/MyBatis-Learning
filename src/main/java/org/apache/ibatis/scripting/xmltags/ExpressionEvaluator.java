@@ -39,7 +39,15 @@ public class ExpressionEvaluator {
     return value != null;
   }
 
+  /**
+   * 对结果为迭代形式的表达式进行求值
+   *
+   * @param expression 表达式
+   * @param parameterObject 参数对象
+   * @return 求值结果
+   */
   public Iterable<?> evaluateIterable(String expression, Object parameterObject) {
+    // 获取表达式的结果
     Object value = OgnlCache.getValue(expression, parameterObject);
     if (value == null) {
       throw new BuilderException("The expression '" + expression + "' evaluated to a null value.");

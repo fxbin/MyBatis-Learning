@@ -34,21 +34,41 @@ public final class OgnlCache {
 
   private static final OgnlMemberAccess MEMBER_ACCESS = new OgnlMemberAccess();
   private static final OgnlClassResolver CLASS_RESOLVER = new OgnlClassResolver();
+
+  /**
+   * 缓存解析之后的 OGNL 表达式，用以提高效率
+   */
   private static final Map<String, Object> expressionCache = new ConcurrentHashMap<>();
 
   private OgnlCache() {
     // Prevent Instantiation of Static Class
   }
 
+  /**
+   * 读取表达式的结果
+   *
+   * @param expression 表达式
+   * @param root 根节点
+   * @return 表达式结果
+   */
   public static Object getValue(String expression, Object root) {
     try {
+      // 创建默认的上下文环境
       Map context = Ognl.createDefaultContext(root, MEMBER_ACCESS, CLASS_RESOLVER, null);
+      // 依次传入表达式树，上下文，根，获得表达式结果
       return Ognl.getValue(parseExpression(expression), context, root);
     } catch (OgnlException e) {
       throw new BuilderException("Error evaluating expression '" + expression + "'. Cause: " + e, e);
     }
   }
 
+  /**
+   * 解析表达式，得到解析后的表达式树
+   *
+   * @param expression 表达式
+   * @return 表达式树
+   * @throws OgnlException
+   */
   private static Object parseExpression(String expression) throws OgnlException {
     Object node = expressionCache.get(expression);
     if (node == null) {

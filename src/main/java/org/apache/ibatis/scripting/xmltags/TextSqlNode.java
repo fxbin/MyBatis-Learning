@@ -39,15 +39,19 @@ public class TextSqlNode implements SqlNode {
   }
 
   public boolean isDynamic() {
+    // 占位符处理器，该处理器不会处理占位符，而是判断是不是含有占位符
     DynamicCheckerTokenParser checker = new DynamicCheckerTokenParser();
     GenericTokenParser parser = createParser(checker);
+    // 如果节点内容含有占位符，则DynamicCheckerTokenParser 对象的 isDynamic 属性会被设置为 true
     parser.parse(text);
     return checker.isDynamic();
   }
 
   @Override
   public boolean apply(DynamicContext context) {
+    // 创建通用的占位符解析器
     GenericTokenParser parser = createParser(new BindingTokenParser(context, injectionFilter));
+    // 替换掉其中的 ${} 占位符
     context.appendSql(parser.parse(text));
     return true;
   }
@@ -87,6 +91,9 @@ public class TextSqlNode implements SqlNode {
     }
   }
 
+  /**
+   *
+   */
   private static class DynamicCheckerTokenParser implements TokenHandler {
 
     private boolean isDynamic;

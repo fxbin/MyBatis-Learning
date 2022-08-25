@@ -56,10 +56,13 @@ public class ForEachSqlNode implements SqlNode {
       return true;
     }
     boolean first = true;
+    // 添加 open 字符串
     applyOpen(context);
     int i = 0;
     for (Object o : iterable) {
       DynamicContext oldContext = context;
+
+      // 第一个元素
       if (first || separator == null) {
         context = new PrefixedContext(context, "");
       } else {
@@ -76,6 +79,8 @@ public class ForEachSqlNode implements SqlNode {
         applyIndex(context, i, uniqueNumber);
         applyItem(context, o, uniqueNumber);
       }
+
+      // 根据上下文信息构建内容
       contents.apply(new FilteredDynamicContext(configuration, context, index, item, uniqueNumber));
       if (first) {
         first = !((PrefixedContext) context).isPrefixApplied();
@@ -83,7 +88,10 @@ public class ForEachSqlNode implements SqlNode {
       context = oldContext;
       i++;
     }
+
+    // 添加 close 字符串
     applyClose(context);
+    // 清理此次操作对环境的影响
     context.getBindings().remove(item);
     context.getBindings().remove(index);
     return true;

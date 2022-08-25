@@ -36,12 +36,24 @@ import org.apache.ibatis.reflection.Reflector;
  */
 class OgnlMemberAccess implements MemberAccess {
 
+  /**
+   * 当前环境下，通过反射是否能够修改对象属性的可访问性
+   */
   private final boolean canControlMemberAccessible;
 
   OgnlMemberAccess() {
     this.canControlMemberAccessible = Reflector.canControlMemberAccessible();
   }
 
+  /**
+   * 设置属性的可访问性
+   *
+   * @param context 环境上下文
+   * @param target 目标对象
+   * @param member 目标对象的目标成员
+   * @param propertyName 属性名称
+   * @return 属性的可访问性
+   */
   @Override
   public Object setup(Map context, Object target, Member member, String propertyName) {
     Object result = null;
@@ -61,6 +73,15 @@ class OgnlMemberAccess implements MemberAccess {
     // Flipping accessible flag is not thread safe. See #1648
   }
 
+  /**
+   * 判断属性对象是否可访问
+   *
+   * @param context 环境上下文
+   * @param target 目标对象
+   * @param member 目标对象的目标成员
+   * @param propertyName 属性名称
+   * @return 判断结果
+   */
   @Override
   public boolean isAccessible(Map context, Object target, Member member, String propertyName) {
     return canControlMemberAccessible;

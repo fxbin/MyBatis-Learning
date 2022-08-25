@@ -34,9 +34,24 @@ import org.w3c.dom.NodeList;
  */
 public class XMLScriptBuilder extends BaseBuilder {
 
+  /**
+   * 当前要处理的 XML 节点
+   */
   private final XNode context;
+
+  /**
+   * 当前节点是否为动态节点
+   */
   private boolean isDynamic;
+
+  /**
+   * 输入参数的类型
+   */
   private final Class<?> parameterType;
+
+  /**
+   * 节点类型和对应的处理器组成的 Map
+   */
   private final Map<String, NodeHandler> nodeHandlerMap = new HashMap<>();
 
   public XMLScriptBuilder(Configuration configuration, XNode context) {
@@ -63,9 +78,16 @@ public class XMLScriptBuilder extends BaseBuilder {
     nodeHandlerMap.put("bind", new BindHandler());
   }
 
+  /**
+   * 解析节点生成 SqlSource 对象
+   *
+   * @return SqlSource 对象
+   */
   public SqlSource parseScriptNode() {
+    // 解析 XML 节点， 得到节点树 MixedSqlNode
     MixedSqlNode rootSqlNode = parseDynamicTags(context);
     SqlSource sqlSource;
+    // 根据节点树是否为动态，创建对应的 SqlSource 对象
     if (isDynamic) {
       sqlSource = new DynamicSqlSource(configuration, rootSqlNode);
     } else {
@@ -74,14 +96,25 @@ public class XMLScriptBuilder extends BaseBuilder {
     return sqlSource;
   }
 
+
+  /**
+   * 将XNode 对象解析为节点树
+   * @param node XNode 对象，即数据库操作节点
+   * @return 解析后得到的节点树
+   */
   protected MixedSqlNode parseDynamicTags(XNode node) {
+    // XNode 拆分出的 SqlNode 列表
     List<SqlNode> contents = new ArrayList<>();
+    // 输入 XNode 的 子 XNode
     NodeList children = node.getNode().getChildNodes();
     for (int i = 0; i < children.getLength(); i++) {
+      // 循环遍历每一个子 XNode
       XNode child = node.newXNode(children.item(i));
       if (child.getNode().getNodeType() == Node.CDATA_SECTION_NODE || child.getNode().getNodeType() == Node.TEXT_NODE) {
+        // 获取 XNode 内的信息
         String data = child.getStringBody("");
         TextSqlNode textSqlNode = new TextSqlNode(data);
+        // 只要有一个 TextSqlNode 是动态的，则整个 MixedSqlNode 就是动态的
         if (textSqlNode.isDynamic()) {
           contents.add(textSqlNode);
           isDynamic = true;
@@ -90,6 +123,7 @@ public class XMLScriptBuilder extends BaseBuilder {
         }
       } else if (child.getNode().getNodeType() == Node.ELEMENT_NODE) { // issue #628
         String nodeName = child.getNode().getNodeName();
+        // 找到对应的处理器
         NodeHandler handler = nodeHandlerMap.get(nodeName);
         if (handler == null) {
           throw new BuilderException("Unknown element <" + nodeName + "> in SQL statement.");
@@ -98,10 +132,19 @@ public class XMLScriptBuilder extends BaseBuilder {
         isDynamic = true;
       }
     }
+
+    // 混合节点-->  SQL 树节点
     return new MixedSqlNode(contents);
   }
 
   private interface NodeHandler {
+
+    /**
+     * 该方法将当前节点拼装到节点树中
+     *
+     * @param nodeToHandle 要被拼接的节点
+     * @param targetContents 节点树
+     */
     void handleNode(XNode nodeToHandle, List<SqlNode> targetContents);
   }
 
@@ -186,11 +229,21 @@ public class XMLScriptBuilder extends BaseBuilder {
       // Prevent Synthetic Access
     }
 
+    /**
+     * 该方法将当前节点拼装到节点树中
+     *
+     * @param nodeToHandle 要被拼接的节点
+     * @param targetContents 节点树
+     */
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
+      // 解析该节点的下级节点
       MixedSqlNode mixedSqlNode = parseDynamicTags(nodeToHandle);
+      // 获取该节点的test属性
       String test = nodeToHandle.getStringAttribute("test");
+      // 创建一个 IfSqlNode
       IfSqlNode ifSqlNode = new IfSqlNode(mixedSqlNode, test);
+      // 将创建的 IfSqlNode 放到 SQL 节点树中
       targetContents.add(ifSqlNode);
     }
   }

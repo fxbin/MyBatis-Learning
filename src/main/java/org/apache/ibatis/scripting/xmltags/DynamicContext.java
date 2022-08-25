@@ -38,19 +38,35 @@ public class DynamicContext {
     OgnlRuntime.setPropertyAccessor(ContextMap.class, new ContextAccessor());
   }
 
+  /**
+   * 上下文环境
+   */
   private final ContextMap bindings;
+
+  /**
+   * 用于拼装的SQL语句片段
+   */
   private final StringJoiner sqlBuilder = new StringJoiner(" ");
+
+  /**
+   * 解析时的唯一编号，防止解析混乱
+   */
   private int uniqueNumber = 0;
 
   public DynamicContext(Configuration configuration, Object parameterObject) {
     if (parameterObject != null && !(parameterObject instanceof Map)) {
+      // 获得参数对象的元对象
       MetaObject metaObject = configuration.newMetaObject(parameterObject);
+      // 判断参数对象本身是否有对应的类型处理器
       boolean existsTypeHandler = configuration.getTypeHandlerRegistry().hasTypeHandler(parameterObject.getClass());
+      // 放入上下文信息
       bindings = new ContextMap(metaObject, existsTypeHandler);
     } else {
       bindings = new ContextMap(null, false);
     }
+    // 上下文信息 放入参数对象
     bindings.put(PARAMETER_OBJECT_KEY, parameterObject);
+    // + 数据库ID
     bindings.put(DATABASE_ID_KEY, configuration.getDatabaseId());
   }
 
@@ -84,6 +100,13 @@ public class DynamicContext {
       this.fallbackParameterObject = fallbackParameterObject;
     }
 
+
+    /**
+     * 根据简直索引，尝试从 HashMap 中寻找，失败后再尝试从 parameterMetaObject 中寻找
+     *
+     * @param key the key whose associated value is to be returned
+     * @return 值
+     */
     @Override
     public Object get(Object key) {
       String strKey = (String) key;
