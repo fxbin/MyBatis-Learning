@@ -25,6 +25,8 @@ import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.SystemMetaObject;
 
 /**
+ * 非池化的数据源工厂
+ *
  * @author Clinton Begin
  */
 public class UnpooledDataSourceFactory implements DataSourceFactory {
@@ -34,20 +36,34 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
 
   protected DataSource dataSource;
 
+  /**
+   * 构造方法，创建数据源
+   */
   public UnpooledDataSourceFactory() {
     this.dataSource = new UnpooledDataSource();
   }
 
+  /**
+   * 为数据源配置配置信息
+   *
+   * @param properties 属性 {@link Properties}
+   */
   @Override
   public void setProperties(Properties properties) {
+    // 驱动属性
     Properties driverProperties = new Properties();
+    // 生成一个包含 DataSource 的元对象
     MetaObject metaDataSource = SystemMetaObject.forObject(dataSource);
+    // 设置属性
     for (Object key : properties.keySet()) {
       String propertyName = (String) key;
+      // 取出以 driver. 开头的配置信息
       if (propertyName.startsWith(DRIVER_PROPERTY_PREFIX)) {
+        // 记录 driver. 开头的配置信息
         String value = properties.getProperty(propertyName);
         driverProperties.setProperty(propertyName.substring(DRIVER_PROPERTY_PREFIX_LENGTH), value);
       } else if (metaDataSource.hasSetter(propertyName)) {
+        // 通过反射为 DataSource 设置其它属性
         String value = (String) properties.get(propertyName);
         Object convertedValue = convertValue(metaDataSource, propertyName, value);
         metaDataSource.setValue(propertyName, convertedValue);
@@ -56,6 +72,7 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
       }
     }
     if (driverProperties.size() > 0) {
+      // 将以 driver. 开头的配置信息放入 DataSource 的 driverProperties 属性中
       metaDataSource.setValue("driverProperties", driverProperties);
     }
   }

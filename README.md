@@ -33,4 +33,14 @@ Essentials
 - [X] `org.apache.ibatis.builder`
 - [X] `org.apache.ibatis.mapping`
 - [X] `org.apache.ibatis.scripting`
-- [ ] `org.apache.ibatis.datasource`
+- [X] `org.apache.ibatis.datasource`
+
+核心操作包
+------
+- [ ] `org.apache.ibatis.jdbc`
+- [ ] `org.apache.ibatis.cache`
+- [ ] `org.apache.ibatis.transaction`
+- [ ] `org.apache.ibatis.cursor`
+- [ ] `org.apache.ibatis.executor`
+- [ ] `org.apache.ibatis.session`
+- [ ] `org.apache.ibatis.plugin`

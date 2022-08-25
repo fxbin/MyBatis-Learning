@@ -27,6 +27,12 @@ import org.apache.ibatis.datasource.DataSourceException;
 import org.apache.ibatis.datasource.DataSourceFactory;
 
 /**
+ *
+ * 从环境中找出指定的 JNDI数据源
+ *
+ * NDI（Java Naming and Directory Interface）是 Java命名和目录接口，它能够为 Java应用程序提供命名和目录访问的接口，
+ * 我们可以将其理解为一个命名规范。在使用该规范为资源命名并将资源放入环境（Context）中后，可以通过名称从环境中查找（lookup）对应的资源。
+ *
  * @author Clinton Begin
  */
 public class JndiDataSourceFactory implements DataSourceFactory {
@@ -37,10 +43,18 @@ public class JndiDataSourceFactory implements DataSourceFactory {
 
   private DataSource dataSource;
 
+
+  /**
+   * 配置数据源，其中包含了数据源的查找工作
+   *
+   * @param properties 属性 {@link Properties}
+   */
   @Override
   public void setProperties(Properties properties) {
     try {
+      // 初始上下文环境
       InitialContext initCtx;
+      // 获取配置信息，根据配置信息初始化环境
       Properties env = getEnvProperties(properties);
       if (env == null) {
         initCtx = new InitialContext();
@@ -48,10 +62,14 @@ public class JndiDataSourceFactory implements DataSourceFactory {
         initCtx = new InitialContext(env);
       }
 
+      // 从配置信息中获取数据源信息
       if (properties.containsKey(INITIAL_CONTEXT) && properties.containsKey(DATA_SOURCE)) {
+        // 定位到 initial_context 给出的起始环境
         Context ctx = (Context) initCtx.lookup(properties.getProperty(INITIAL_CONTEXT));
+        // 从起始环境中寻找指定数据源
         dataSource = (DataSource) ctx.lookup(properties.getProperty(DATA_SOURCE));
       } else if (properties.containsKey(DATA_SOURCE)) {
+        // 从整个环境中寻找指定数据源
         dataSource = (DataSource) initCtx.lookup(properties.getProperty(DATA_SOURCE));
       }
 
