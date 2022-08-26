@@ -63,6 +63,17 @@ public class ManagedTransaction implements Transaction {
     return this.connection;
   }
 
+
+
+  // ===
+
+  /**
+   * {@link ManagedTransaction#commit()}
+   * {@link ManagedTransaction#rollback()}
+   * 没有实现，容器类事务，会托管给 spring
+   *
+   */
+
   @Override
   public void commit() throws SQLException {
     // Does nothing
