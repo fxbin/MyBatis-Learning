@@ -15,11 +15,6 @@
  */
 package org.apache.ibatis.cursor.defaults;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-
 import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.executor.resultset.DefaultResultSetHandler;
 import org.apache.ibatis.executor.resultset.ResultSetWrapper;
@@ -27,6 +22,11 @@ import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.session.ResultContext;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * This is the default implementation of a MyBatis Cursor.
@@ -39,14 +39,40 @@ public class DefaultCursor<T> implements Cursor<T> {
   // ResultSetHandler stuff
   private final DefaultResultSetHandler resultSetHandler;
   private final ResultMap resultMap;
+
+  /**
+   * 返回结果的详细信息
+   */
   private final ResultSetWrapper rsw;
+
+  /**
+   * 结果的起止信息
+   */
   private final RowBounds rowBounds;
+
+  /**
+   * ResultHandler 的子类，起到暂存结果的作用
+   */
   protected final ObjectWrapperResultHandler<T> objectWrapperResultHandler = new ObjectWrapperResultHandler<>();
 
+  /**
+   * 内部迭代器
+   */
   private final CursorIterator cursorIterator = new CursorIterator();
+
+  /**
+   * 迭代器存在标志位
+   */
   private boolean iteratorRetrieved;
 
+  /**
+   * 游标状态
+   */
   private CursorStatus status = CursorStatus.CREATED;
+
+  /**
+   * 记录已经开始的行
+   */
   private int indexWithRowBound = -1;
 
   private enum CursorStatus {
@@ -122,13 +148,18 @@ public class DefaultCursor<T> implements Cursor<T> {
   }
 
   protected T fetchNextUsingRowBound() {
+    // 从数据库查询结果中取出下一个对象
     T result = fetchNextObjectFromDatabase();
+    // 如果对象存在，但是不满足边界限制，则持续读取数据库结果中的下一个，直到边界起始位置
     while (objectWrapperResultHandler.fetched && indexWithRowBound < rowBounds.getOffset()) {
       result = fetchNextObjectFromDatabase();
     }
     return result;
   }
 
+  /**
+   * 从数据库获取下一个对象
+   */
   protected T fetchNextObjectFromDatabase() {
     if (isClosed()) {
       return null;
@@ -137,15 +168,19 @@ public class DefaultCursor<T> implements Cursor<T> {
     try {
       objectWrapperResultHandler.fetched = false;
       status = CursorStatus.OPEN;
+      // 结果集尚未关闭
       if (!rsw.getResultSet().isClosed()) {
+        // 从结果集中取出一条记录，将其转化为对象，并存入 objectWrapperResultHandler 中
         resultSetHandler.handleRowValues(rsw, resultMap, objectWrapperResultHandler, RowBounds.DEFAULT, null);
       }
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
 
+    // 获得存入 objectWrapperResultHandler 中的对象
     T next = objectWrapperResultHandler.result;
     if (objectWrapperResultHandler.fetched) {
+      // 索引记录 +1
       indexWithRowBound++;
     }
     // No more object or limit reached
@@ -171,6 +206,12 @@ public class DefaultCursor<T> implements Cursor<T> {
     protected T result;
     protected boolean fetched;
 
+
+    /**
+     * 从结果上下文中取出并处理结果
+     *
+     * @param context 结果上下文
+     */
     @Override
     public void handleResult(ResultContext<? extends T> context) {
       this.result = context.getResultObject();

@@ -40,7 +40,7 @@ Essentials
 - [X] `org.apache.ibatis.jdbc`
 - [X] `org.apache.ibatis.cache`
 - [X] `org.apache.ibatis.transaction`
-- [ ] `org.apache.ibatis.cursor`
+- [X] `org.apache.ibatis.cursor`
 - [ ] `org.apache.ibatis.executor`
 - [ ] `org.apache.ibatis.session`
 - [ ] `org.apache.ibatis.plugin`
