@@ -15,15 +15,17 @@
  */
 package org.apache.ibatis.cache.decorators;
 
-import java.text.MessageFormat;
+import org.apache.ibatis.cache.Cache;
+import org.apache.ibatis.cache.CacheException;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.ibatis.cache.Cache;
-import org.apache.ibatis.cache.CacheException;
-
 /**
+ * 阻塞装饰器，为缓存增加阻塞功能
+ * <p>缓存在收到多条相同的查询请求时会暂时阻塞住后面的查询，等待数据库结果返回时将所有的请求一并返回
+ *
  * <p>Simple blocking decorator
  *
  * <p>Simple and inefficient version of EhCache's BlockingCache decorator.
@@ -37,8 +39,20 @@ import org.apache.ibatis.cache.CacheException;
  */
 public class BlockingCache implements Cache {
 
+  /**
+   * 获取锁时的运行等待时间
+   */
   private long timeout;
+
+  /**
+   * 被装饰对象
+   */
   private final Cache delegate;
+
+  /**
+   * 锁的映射表，键为缓存记录的键，值为对应的锁
+   * 锁住的是单条记录，而不是整个缓存数据
+   */
   private final ConcurrentHashMap<Object, CountDownLatch> locks;
 
   public BlockingCache(Cache delegate) {
@@ -67,11 +81,15 @@ public class BlockingCache implements Cache {
 
   @Override
   public Object getObject(Object key) {
+    // 获取锁
     acquireLock(key);
+    // 读取结果
     Object value = delegate.getObject(key);
     if (value != null) {
+      // 释放锁
       releaseLock(key);
     }
+    // 如果缓存中没有读取到结果，则不会释放锁。 对应的锁会再从数据库读取了结果并写入缓存之后，从 putObject 中释放
     return value;
   }
 
@@ -87,6 +105,12 @@ public class BlockingCache implements Cache {
     delegate.clear();
   }
 
+
+  /**'
+   * 找出某个键的锁
+   *
+   * @param key
+   */
   private void acquireLock(Object key) {
     CountDownLatch newLatch = new CountDownLatch(1);
     while (true) {

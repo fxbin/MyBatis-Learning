@@ -38,7 +38,7 @@ Essentials
 核心操作包
 ------
 - [X] `org.apache.ibatis.jdbc`
-- [ ] `org.apache.ibatis.cache`
+- [X] `org.apache.ibatis.cache`
 - [ ] `org.apache.ibatis.transaction`
 - [ ] `org.apache.ibatis.cursor`
 - [ ] `org.apache.ibatis.executor`

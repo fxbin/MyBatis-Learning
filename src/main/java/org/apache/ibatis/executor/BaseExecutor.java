@@ -55,7 +55,15 @@ public abstract class BaseExecutor implements Executor {
   protected Executor wrapper;
 
   protected ConcurrentLinkedQueue<DeferredLoad> deferredLoads;
+
+  /**
+   * 查询操作的结果缓存
+   */
   protected PerpetualCache localCache;
+
+  /**
+   * Callable 查询的输出参数缓存
+   */
   protected PerpetualCache localOutputParameterCache;
   protected Configuration configuration;
 
@@ -129,13 +137,40 @@ public abstract class BaseExecutor implements Executor {
     return doFlushStatements(isRollBack);
   }
 
+
+  /**
+   * 执行查询操作
+   *
+   * @param ms 映射语句对象
+   * @param parameter 参数对象
+   * @param rowBounds 翻页限制
+   * @param resultHandler 结果处理器
+   * @param <E> 输出结果类型
+   * @return 查询结果
+   * @throws SQLException
+   */
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
     BoundSql boundSql = ms.getBoundSql(parameter);
+    // 生成缓存得键
     CacheKey key = createCacheKey(ms, parameter, rowBounds, boundSql);
     return query(ms, parameter, rowBounds, resultHandler, key, boundSql);
   }
 
+
+  /**
+   * 查询数据库中的数据
+   *
+   * @param ms 映射语句对象
+   * @param parameter 参数对象
+   * @param rowBounds 翻页限制
+   * @param resultHandler 结果处理器
+   * @param key 缓存的key
+   * @param boundSql 查询语句
+   * @param <E> 结果类型
+   * @return 结果列表
+   * @throws SQLException
+   */
   @SuppressWarnings("unchecked")
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
@@ -143,27 +178,35 @@ public abstract class BaseExecutor implements Executor {
     if (closed) {
       throw new ExecutorException("Executor was closed.");
     }
+
+    // 新的查询栈，且要求清楚缓存
     if (queryStack == 0 && ms.isFlushCacheRequired()) {
+      // 清楚一级缓存
       clearLocalCache();
     }
     List<E> list;
     try {
       queryStack++;
+      // 尝试从本地缓存获取结果
       list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
       if (list != null) {
+        // 本地缓存中有结果，则对于 Callable 语句还需要绑定到 IN/INOUT 参数上
         handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
       } else {
+        // 本地缓存没有结果 ，故需要查询数据库
         list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
       }
     } finally {
       queryStack--;
     }
     if (queryStack == 0) {
+      // 懒加载操作的处理
       for (DeferredLoad deferredLoad : deferredLoads) {
         deferredLoad.load();
       }
       // issue #601
       deferredLoads.clear();
+      // 如果本地缓存作用域为 STATEMENT, 则立刻清楚本地缓存
       if (configuration.getLocalCacheScope() == LocalCacheScope.STATEMENT) {
         // issue #482
         clearLocalCache();
@@ -191,6 +234,15 @@ public abstract class BaseExecutor implements Executor {
     }
   }
 
+  /**
+   * 生成查询的缓存键
+   *
+   * @param ms 映射语句对象
+   * @param parameterObject 参数对象
+   * @param rowBounds 翻页限制
+   * @param boundSql 解析结束后的SQL语句
+   * @return {@link CacheKey}
+   */
   @Override
   public CacheKey createCacheKey(MappedStatement ms, Object parameterObject, RowBounds rowBounds, BoundSql boundSql) {
     if (closed) {

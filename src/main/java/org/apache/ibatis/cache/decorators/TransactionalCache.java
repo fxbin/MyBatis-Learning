@@ -15,16 +15,18 @@
  */
 package org.apache.ibatis.cache.decorators;
 
+import org.apache.ibatis.cache.Cache;
+import org.apache.ibatis.logging.Log;
+import org.apache.ibatis.logging.LogFactory;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ibatis.cache.Cache;
-import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.logging.LogFactory;
-
 /**
+ * 事务装饰器，用于支持事务操作的装饰器
+ *
  * The 2nd level cache transactional buffer.
  * <p>
  * This class holds all cache entries that are to be added to the 2nd level cache during a Session.
@@ -40,8 +42,20 @@ public class TransactionalCache implements Cache {
   private static final Log log = LogFactory.getLog(TransactionalCache.class);
 
   private final Cache delegate;
+
+  /**
+   * 事务提交后是否直接清理缓存
+   */
   private boolean clearOnCommit;
+
+  /**
+   * 事务提交时需要写入缓存的数据
+   */
   private final Map<Object, Object> entriesToAddOnCommit;
+
+  /**
+   * 缓存查询未命中的数据
+   */
   private final Set<Object> entriesMissedInCache;
 
   public TransactionalCache(Cache delegate) {
@@ -65,9 +79,12 @@ public class TransactionalCache implements Cache {
   public Object getObject(Object key) {
     // issue #116
     Object object = delegate.getObject(key);
+    // 缓存未命中，记录未命中的缓存key
     if (object == null) {
       entriesMissedInCache.add(key);
     }
+
+    // 如果设置了提交时立马清除，则直接返回null
     // issue #146
     if (clearOnCommit) {
       return null;
@@ -78,6 +95,7 @@ public class TransactionalCache implements Cache {
 
   @Override
   public void putObject(Object key, Object object) {
+    // 暂存于  entriesToAddOnCommit
     entriesToAddOnCommit.put(key, object);
   }
 
@@ -92,6 +110,13 @@ public class TransactionalCache implements Cache {
     entriesToAddOnCommit.clear();
   }
 
+  /**
+   * 提交事务
+   * 1. 如果设置事务提交后清理缓存，
+   *   1.1. 清理缓存
+   * 2. 将暂存列表数据写入缓存
+   * 3. 清理环境
+   */
   public void commit() {
     if (clearOnCommit) {
       delegate.clear();
@@ -122,6 +147,9 @@ public class TransactionalCache implements Cache {
     }
   }
 
+  /**
+   * 删除未命中的数据
+   */
   private void unlockMissedEntries() {
     for (Object entry : entriesMissedInCache) {
       try {

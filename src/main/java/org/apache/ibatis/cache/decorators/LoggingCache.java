@@ -20,6 +20,7 @@ import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 
 /**
+ * 日志装饰器， 缓存增加日志功能
  * @author Clinton Begin
  */
 public class LoggingCache implements Cache {
@@ -49,11 +50,20 @@ public class LoggingCache implements Cache {
     delegate.putObject(key, object);
   }
 
+  /**
+   * 从缓存中读取一条信息
+   *
+   * @param key
+   *          The key
+   * @return 信息的值
+   */
   @Override
   public Object getObject(Object key) {
+    // 请求缓存次数
     requests++;
     final Object value = delegate.getObject(key);
     if (value != null) {
+      // 命中缓存次数
       hits++;
     }
     if (log.isDebugEnabled()) {

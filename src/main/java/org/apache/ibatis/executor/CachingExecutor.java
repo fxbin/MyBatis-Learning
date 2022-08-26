@@ -33,12 +33,18 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
 /**
+ * 执行器装饰器
+ *
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
 public class CachingExecutor implements Executor {
 
   private final Executor delegate;
+
+  /**
+   * 事务缓存管理器
+   */
   private final TransactionalCacheManager tcm = new TransactionalCacheManager();
 
   public CachingExecutor(Executor delegate) {
@@ -89,18 +95,41 @@ public class CachingExecutor implements Executor {
     return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
 
+
+  /**
+   * 查询操作
+   *
+   * @param ms 映射语句
+   * @param parameterObject 参数对象
+   * @param rowBounds 翻页限制条件
+   * @param resultHandler 结果处理器
+   * @param key 缓存的键
+   * @param boundSql 查询语句
+   * @param <E> 类型
+   * @return 结果列表
+   * @throws SQLException
+   */
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)
       throws SQLException {
+
+    // 获取 MappedStatement 对应的缓存，可能的结果：该命名空间的缓存、共享其它命名空间的缓存、无缓存
     Cache cache = ms.getCache();
+
+    // 如果映射文件未设置 <cache> 或 <cache-ref>，则此处 cache 变量为 null
     if (cache != null) {
+      // 根据要求判断语句执行前是否需要清除二级缓存，如果需要，则清除
       flushCacheIfRequired(ms);
       if (ms.isUseCache() && resultHandler == null) {
+        // 二级缓存不支持含有输出参数的 CALLABLE 语句，故在这里进行判断
         ensureNoOutParams(ms, boundSql);
+        // 从缓存中读取数据
         @SuppressWarnings("unchecked")
         List<E> list = (List<E>) tcm.getObject(cache, key);
         if (list == null) {
+          // 缓存没有命中，则交给被包装的执行器执行
           list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+          // 缓存被包装执行器返回的结果
           tcm.putObject(cache, key, list); // issue #578 and #116
         }
         return list;
@@ -161,6 +190,11 @@ public class CachingExecutor implements Executor {
     delegate.clearLocalCache();
   }
 
+  /**
+   * 根据要求判断语句执行前是否需要清除二级缓存，如果需要，则进行清除二级缓存
+   *
+   * @param ms {@link MappedStatement}
+   */
   private void flushCacheIfRequired(MappedStatement ms) {
     Cache cache = ms.getCache();
     if (cache != null && ms.isFlushCacheRequired()) {

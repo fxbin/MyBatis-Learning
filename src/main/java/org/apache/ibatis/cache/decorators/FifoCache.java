@@ -28,6 +28,10 @@ import org.apache.ibatis.cache.Cache;
 public class FifoCache implements Cache {
 
   private final Cache delegate;
+
+  /**
+   * 按照写入顺序保存了缓存数据的键
+   */
   private final Deque<Object> keyList;
   private int size;
 

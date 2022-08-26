@@ -45,10 +45,29 @@ public class CacheKey implements Cloneable, Serializable {
   private static final int DEFAULT_MULTIPLIER = 37;
   private static final int DEFAULT_HASHCODE = 17;
 
+  /**
+   * 乘数，用来计算 hashcode 时使用
+   */
   private final int multiplier;
+
+  /**
+   * 哈希值，整个 {@link CacheKey} 的哈希值。如果两个 CacheKey 的该值不同，则两个 CacheKey 一定不同
+   */
   private int hashcode;
+
+  /**
+   * 求和校验值，整个 {@link CacheKey} 的求和校验值。如果两个 {@link CacheKey} 的该值不同，则两个 {@link CacheKey} 一定不同
+   */
   private long checksum;
+
+  /**
+   * 更新次数，整个 {@link CacheKey} 的更新次数
+   */
   private int count;
+
+  /**
+   * 更新历史
+   */
   // 8/21/2017 - Sonarlint flags this as needing to be marked transient. While true if content is not serializable, this
   // is not always true and thus should not be marked transient.
   private List<Object> updateList;
@@ -69,6 +88,11 @@ public class CacheKey implements Cloneable, Serializable {
     return updateList.size();
   }
 
+  /**
+   * 更新 CacheKey
+   *
+   * @param object 更新参数
+   */
   public void update(Object object) {
     int baseHashCode = object == null ? 1 : ArrayUtil.hashCode(object);
 
@@ -87,17 +111,23 @@ public class CacheKey implements Cloneable, Serializable {
     }
   }
 
+  /**
+   * 比较当前对象和输入参数对象（通常也是 CacheKey 对象）是否相当
+   */
   @Override
   public boolean equals(Object object) {
+    // 如果地址一样，是同一个对象，则一定相等
     if (this == object) {
       return true;
     }
+    // 如果输入参数不是 CacheKey 对象，则必定不相等
     if (!(object instanceof CacheKey)) {
       return false;
     }
 
     final CacheKey cacheKey = (CacheKey) object;
 
+    // 依次比较 hashcode, checksum, count
     if (hashcode != cacheKey.hashcode) {
       return false;
     }
@@ -108,6 +138,7 @@ public class CacheKey implements Cloneable, Serializable {
       return false;
     }
 
+    // 详细比较变更历史中的每次变更
     for (int i = 0; i < updateList.size(); i++) {
       Object thisObject = updateList.get(i);
       Object thatObject = cacheKey.updateList.get(i);

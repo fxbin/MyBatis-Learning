@@ -29,9 +29,25 @@ import org.apache.ibatis.cache.Cache;
  * @author Clinton Begin
  */
 public class WeakCache implements Cache {
+
+  /**
+   * 强引用的对象列表
+   */
   private final Deque<Object> hardLinksToAvoidGarbageCollection;
+
+  /**
+   * 弱引用的对象列表
+   */
   private final ReferenceQueue<Object> queueOfGarbageCollectedEntries;
+
+  /**
+   * 被装饰的对象
+   */
   private final Cache delegate;
+
+  /**
+   * 强引用对象的数据限制
+   */
   private int numberOfHardLinks;
 
   public WeakCache(Cache delegate) {
@@ -58,7 +74,9 @@ public class WeakCache implements Cache {
 
   @Override
   public void putObject(Object key, Object value) {
+    // 清理垃圾回收对象中的元素
     removeGarbageCollectedItems();
+    // 向被装饰对象中放入的值是弱引用的句柄
     delegate.putObject(key, new WeakEntry(key, value, queueOfGarbageCollectedEntries));
   }
 
@@ -67,13 +85,18 @@ public class WeakCache implements Cache {
     Object result = null;
     @SuppressWarnings("unchecked") // assumed delegate cache is totally managed by this cache
     WeakReference<Object> weakReference = (WeakReference<Object>) delegate.getObject(key);
+    // 弱引用的句柄
     if (weakReference != null) {
+      // 弱引用的对象
       result = weakReference.get();
       if (result == null) {
         delegate.removeObject(key);
       } else {
+        // 弱引用的对象存在
+        // 将缓存写入强引用列表，防止被清理
         hardLinksToAvoidGarbageCollection.addFirst(result);
         if (hardLinksToAvoidGarbageCollection.size() > numberOfHardLinks) {
+          // 超出限定值，清理数据
           hardLinksToAvoidGarbageCollection.removeLast();
         }
       }
@@ -94,14 +117,19 @@ public class WeakCache implements Cache {
     delegate.clear();
   }
 
+  /**
+   * 把值已经被JVM清理掉的缓存数据从缓存中删除
+   */
   private void removeGarbageCollectedItems() {
     WeakEntry sv;
+    // 轮询改垃圾回收队列
     while ((sv = (WeakEntry) queueOfGarbageCollectedEntries.poll()) != null) {
       delegate.removeObject(sv.key);
     }
   }
 
   private static class WeakEntry extends WeakReference<Object> {
+    // 该目标键不会被JVM清理掉，这里存储了目标对象的键
     private final Object key;
 
     private WeakEntry(Object key, Object value, ReferenceQueue<Object> garbageCollectionQueue) {

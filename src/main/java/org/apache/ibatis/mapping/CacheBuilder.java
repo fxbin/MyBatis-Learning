@@ -89,20 +89,34 @@ public class CacheBuilder {
     return this;
   }
 
+  /**
+   * 构建缓存
+   *
+   * @return 缓存对象 {@link Cache}
+   */
   public Cache build() {
+    // 设置缓存的默认实现、默认装饰器（仅设置，并未装配）
     setDefaultImplementations();
+    // 创建默认的缓存
     Cache cache = newBaseCacheInstance(implementation, id);
+    // 设置缓存的属性
     setCacheProperties(cache);
     // issue #352, do not apply decorators to custom caches
     if (PerpetualCache.class.equals(cache.getClass())) {
+      // 缓存实现类是 PerpetualCache， 不是用户自定义的缓存实现类
       for (Class<? extends Cache> decorator : decorators) {
+        // 逐级嵌套自定义的装饰器
         cache = newCacheDecoratorInstance(decorator, cache);
+        // 为装饰器设置属性
         setCacheProperties(cache);
       }
+      // 为缓存增加标准的装饰器
       cache = setStandardDecorators(cache);
     } else if (!LoggingCache.class.isAssignableFrom(cache.getClass())) {
+      // 增加日志装饰器
       cache = new LoggingCache(cache);
     }
+    // 返回包装结果
     return cache;
   }
 
@@ -115,21 +129,33 @@ public class CacheBuilder {
     }
   }
 
+  /**
+   * 为缓存增加标准的装饰器
+   *
+   * @param cache 被装饰的缓存
+   * @return 装饰结束的缓存
+   */
   private Cache setStandardDecorators(Cache cache) {
     try {
       MetaObject metaCache = SystemMetaObject.forObject(cache);
+      // 设置缓存大小
       if (size != null && metaCache.hasSetter("size")) {
         metaCache.setValue("size", size);
       }
+      // 如果定义了清理间隔，则使用定时清理装饰器装饰缓存
       if (clearInterval != null) {
         cache = new ScheduledCache(cache);
         ((ScheduledCache) cache).setClearInterval(clearInterval);
       }
+      // 如果允许读写，则使用序列化装饰器装饰缓存
       if (readWrite) {
         cache = new SerializedCache(cache);
       }
+      // 使用日志装饰器装饰缓存
       cache = new LoggingCache(cache);
+      // 使用同步装饰器装饰缓存
       cache = new SynchronizedCache(cache);
+      // 如果启用了阻塞功能，则使用阻塞装饰器装饰缓存
       if (blocking) {
         cache = new BlockingCache(cache);
       }

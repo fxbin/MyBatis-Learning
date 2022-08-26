@@ -20,12 +20,25 @@ import java.util.concurrent.TimeUnit;
 import org.apache.ibatis.cache.Cache;
 
 /**
+ * 定时清理装饰器，为缓存增加定时刷新功能
+ *
  * @author Clinton Begin
  */
 public class ScheduledCache implements Cache {
 
+  /**
+   * 被装饰的对象
+   */
   private final Cache delegate;
+
+  /**
+   * 清理的时间间隔
+   */
   protected long clearInterval;
+
+  /**
+   * 上次清理的时刻
+   */
   protected long lastClear;
 
   public ScheduledCache(Cache delegate) {
@@ -82,6 +95,12 @@ public class ScheduledCache implements Cache {
     return delegate.equals(obj);
   }
 
+  /**
+   * 根据清理时间间隔设置清理缓存，
+   * 非实时的设计方式，，节约资源，并且不会造成太大的误差
+   *
+   * @return 是否发生了缓存清理
+   */
   private boolean clearWhenStale() {
     if (System.currentTimeMillis() - lastClear > clearInterval) {
       clear();

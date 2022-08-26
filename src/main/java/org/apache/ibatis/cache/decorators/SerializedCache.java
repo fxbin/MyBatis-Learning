@@ -30,6 +30,18 @@ import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.io.SerialFilterChecker;
 
 /**
+ * 序列化装饰器，为缓存增加序列化功能
+ *
+ * <p>
+ *   问题描述：
+ *   对象（也就是数据）放入缓存后，如果被多次读取出来，则多次读取的是同一个对象的引用。
+ *   也就是说，缓存中的对象是在多个引用之间共享的。
+ *   这意味着，如果读取后修改了该对象的属性，会直接导致缓存中的对象也发生变化
+ * </p>
+ *
+ * <p> SerializedCache后，每次向缓存中写入对象时，实际写入的是对象的序列化串；而每次读取对象时，会将序列化串反序列化后再返回
+ * <p> 通过序列化和反序列化的过程保证了每一次缓存给出的对象都是一个全新的对象，对该对象的修改不会影响缓存中的对象
+ *
  * @author Clinton Begin
  */
 public class SerializedCache implements Cache {
