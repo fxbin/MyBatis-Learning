@@ -374,12 +374,23 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     return !context.isStopped() && context.getResultCount() < rowBounds.getLimit();
   }
 
+
+  /**
+   * 根据翻页限制条件跳过指定的行
+   *
+   * @param rs 结果集
+   * @param rowBounds 翻页限制条件
+   * @throws SQLException
+   */
   private void skipRows(ResultSet rs, RowBounds rowBounds) throws SQLException {
     if (rs.getType() != ResultSet.TYPE_FORWARD_ONLY) {
+      // 进入该分支表示结果的游标就不是只能单步前进
       if (rowBounds.getOffset() != RowBounds.NO_ROW_OFFSET) {
+        // 直接让游标移到起始位置
         rs.absolute(rowBounds.getOffset());
       }
     } else {
+      // 进入该分支标识结果的游标只能单步前进
       for (int i = 0; i < rowBounds.getOffset(); i++) {
         if (!rs.next()) {
           break;

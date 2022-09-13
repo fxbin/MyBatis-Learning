@@ -15,18 +15,6 @@
  */
 package org.apache.ibatis.session;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.function.BiFunction;
-
 import org.apache.ibatis.binding.MapperRegistry;
 import org.apache.ibatis.builder.CacheRefResolver;
 import org.apache.ibatis.builder.IncompleteElementException;
@@ -42,11 +30,7 @@ import org.apache.ibatis.cache.impl.PerpetualCache;
 import org.apache.ibatis.datasource.jndi.JndiDataSourceFactory;
 import org.apache.ibatis.datasource.pooled.PooledDataSourceFactory;
 import org.apache.ibatis.datasource.unpooled.UnpooledDataSourceFactory;
-import org.apache.ibatis.executor.BatchExecutor;
-import org.apache.ibatis.executor.CachingExecutor;
-import org.apache.ibatis.executor.Executor;
-import org.apache.ibatis.executor.ReuseExecutor;
-import org.apache.ibatis.executor.SimpleExecutor;
+import org.apache.ibatis.executor.*;
 import org.apache.ibatis.executor.keygen.KeyGenerator;
 import org.apache.ibatis.executor.loader.ProxyFactory;
 import org.apache.ibatis.executor.loader.cglib.CglibProxyFactory;
@@ -66,13 +50,7 @@ import org.apache.ibatis.logging.log4j2.Log4j2Impl;
 import org.apache.ibatis.logging.nologging.NoLoggingImpl;
 import org.apache.ibatis.logging.slf4j.Slf4jImpl;
 import org.apache.ibatis.logging.stdout.StdOutImpl;
-import org.apache.ibatis.mapping.BoundSql;
-import org.apache.ibatis.mapping.Environment;
-import org.apache.ibatis.mapping.MappedStatement;
-import org.apache.ibatis.mapping.ParameterMap;
-import org.apache.ibatis.mapping.ResultMap;
-import org.apache.ibatis.mapping.ResultSetType;
-import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
+import org.apache.ibatis.mapping.*;
 import org.apache.ibatis.parsing.XNode;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.plugin.InterceptorChain;
@@ -95,13 +73,22 @@ import org.apache.ibatis.type.TypeAliasRegistry;
 import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
+import java.util.*;
+import java.util.function.BiFunction;
+
 /**
  * @author Clinton Begin
  */
 public class Configuration {
 
+  /**
+   * <environment> 节点的信息
+   */
   protected Environment environment;
 
+  /**
+   * 以下为<settings> 节点中的配置信息
+   */
   protected boolean safeRowBoundsEnabled;
   protected boolean safeResultHandlerEnabled = true;
   protected boolean mapUnderscoreToCamelCase;
@@ -129,15 +116,41 @@ public class Configuration {
   protected AutoMappingBehavior autoMappingBehavior = AutoMappingBehavior.PARTIAL;
   protected AutoMappingUnknownColumnBehavior autoMappingUnknownColumnBehavior = AutoMappingUnknownColumnBehavior.NONE;
 
+  /**
+   * <properties> 节点信息
+   */
   protected Properties variables = new Properties();
+
+  /**
+   * 反射工厂
+   */
   protected ReflectorFactory reflectorFactory = new DefaultReflectorFactory();
+
+  /**
+   * 对象工厂
+   */
   protected ObjectFactory objectFactory = new DefaultObjectFactory();
+
+  /**
+   * 对象包装工厂
+   */
   protected ObjectWrapperFactory objectWrapperFactory = new DefaultObjectWrapperFactory();
 
+  /**
+   * 是否启用懒加载，该配置来自 <settings> 节点
+   */
   protected boolean lazyLoadingEnabled = false;
+
+  /**
+   * 代理工厂
+   */
   protected ProxyFactory proxyFactory = new JavassistProxyFactory(); // #224 Using internal Javassist instead of OGNL
 
+  /**
+   * 数据库编号
+   */
   protected String databaseId;
+
   /**
    * Configuration factory class.
    * Used to create Configuration for loading deserialized unread properties.
@@ -146,24 +159,67 @@ public class Configuration {
    */
   protected Class<?> configurationFactory;
 
+  /**
+   * 映射注册表
+   */
   protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
+
+  /**
+   * 拦截器链（用来支持插件的插入）
+   */
   protected final InterceptorChain interceptorChain = new InterceptorChain();
+
+  /**
+   * 类型处理器注册表，内置许多，可以通过 <typeHandlers> 节点补充
+   */
   protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry(this);
+
+  /**
+   * 类型别名注册表，内置许多，可以通过 <typeAliases> 节点进行补充
+   */
   protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
+
+  /**
+   * 语言驱动注册表
+   */
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
 
   /**
    * namespace值.语句id ，
+   * 映射的数据库操作语句
    */
   protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection")
       .conflictMessageProducer((savedValue, targetValue) ->
           ". please check " + savedValue.getResource() + " and " + targetValue.getResource());
+
+  /**
+   * 缓存
+   */
   protected final Map<String, Cache> caches = new StrictMap<>("Caches collection");
+
+  /**
+   * 结果映射，即所有的 <resultMap> 节点
+   */
   protected final Map<String, ResultMap> resultMaps = new StrictMap<>("Result Maps collection");
+
+  /**
+   * 参数映射，即所有的 <parameterMap> 节点
+   */
   protected final Map<String, ParameterMap> parameterMaps = new StrictMap<>("Parameter Maps collection");
+
+  /**
+   * 主键生成器映射
+   */
   protected final Map<String, KeyGenerator> keyGenerators = new StrictMap<>("Key Generators collection");
 
+  /**
+   * 载入的资源，如映射文件资源
+   */
   protected final Set<String> loadedResources = new HashSet<>();
+
+  /**
+   * sql 语句片段，即所有的 <sql> 节点
+   */
   protected final Map<String, XNode> sqlFragments = new StrictMap<>("XML fragments parsed from previous mappers");
 
 
@@ -179,6 +235,7 @@ public class Configuration {
   protected final Collection<MethodResolver> incompleteMethods = new LinkedList<>();
 
   /*
+   * 用来存储跨 namespace 的缓存共享设置
    * A map holds cache-ref relationship. The key is the namespace that
    * references a cache bound to another namespace and the value is the
    * namespace which the actual cache is bound to.
@@ -651,9 +708,20 @@ public class Configuration {
     return MetaObject.forObject(object, objectFactory, objectWrapperFactory, reflectorFactory);
   }
 
+  /**
+   * 创建参数处理器
+   *
+   * @param mappedStatement 数据库操作的信息
+   * @param parameterObject 参数对象
+   * @param boundSql SQL语句信息
+   * @return 参数处理器
+   */
   public ParameterHandler newParameterHandler(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql) {
+    // 创建参数处理器
     ParameterHandler parameterHandler = mappedStatement.getLang().createParameterHandler(mappedStatement, parameterObject, boundSql);
+    // 将参数处理器交给拦截器链进行替换，以便拦截器链中的拦截器能注入行为
     parameterHandler = (ParameterHandler) interceptorChain.pluginAll(parameterHandler);
+    // 返回最终的参数处理器
     return parameterHandler;
   }
 
@@ -1040,11 +1108,14 @@ public class Configuration {
       if (key.contains(".")) {
         final String shortKey = getShortName(key);
         if (super.get(shortKey) == null) {
+          // 以短名称为键，放置一次
           super.put(shortKey, value);
         } else {
+          // 放入该对象，表示短名称会引发歧义
           super.put(shortKey, (V) new Ambiguity(shortKey));
         }
       }
+      // 以长名称为键，放置一次
       return super.put(key, value);
     }
 

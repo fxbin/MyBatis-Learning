@@ -42,5 +42,5 @@ Essentials
 - [X] `org.apache.ibatis.transaction`
 - [X] `org.apache.ibatis.cursor`
 - [ ] `org.apache.ibatis.executor`
-- [ ] `org.apache.ibatis.session`
-- [ ] `org.apache.ibatis.plugin`
+- [X] `org.apache.ibatis.session`
+- [X] `org.apache.ibatis.plugin`

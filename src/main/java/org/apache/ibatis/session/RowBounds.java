@@ -19,12 +19,18 @@ package org.apache.ibatis.session;
  * @author Clinton Begin
  */
 public class RowBounds {
-
   public static final int NO_ROW_OFFSET = 0;
   public static final int NO_ROW_LIMIT = Integer.MAX_VALUE;
   public static final RowBounds DEFAULT = new RowBounds();
 
+  /**
+   * 起始位置，即略过前面 offset 条之后才开始读取结果
+   */
   private final int offset;
+
+  /**
+   * 总长度限制，即读取的结果总数不超过 limit 条
+   */
   private final int limit;
 
   public RowBounds() {

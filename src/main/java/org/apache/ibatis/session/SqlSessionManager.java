@@ -34,11 +34,25 @@ import org.apache.ibatis.reflection.ExceptionUtil;
  */
 public class SqlSessionManager implements SqlSessionFactory, SqlSession {
 
+  /**
+   * 构造方法中传入的 SqlSessionFactory 对象
+   */
   private final SqlSessionFactory sqlSessionFactory;
+
+  /**
+   * 在构造方法中创建的 SqlSession 代理对象
+   */
   private final SqlSession sqlSessionProxy;
 
+  /**
+   * 该变量用来存储被代理的 SqlSession 对象
+   */
   private final ThreadLocal<SqlSession> localSqlSession = new ThreadLocal<>();
 
+  /**
+   * SqlSessionManager 构造方法
+   * @param sqlSessionFactory SqlSession 工厂
+   */
   private SqlSessionManager(SqlSessionFactory sqlSessionFactory) {
     this.sqlSessionFactory = sqlSessionFactory;
     this.sqlSessionProxy = (SqlSession) Proxy.newProxyInstance(
@@ -342,18 +356,45 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
         // Prevent Synthetic Access
     }
 
+    /**
+     * 代理方法
+     *
+     * @param proxy the proxy instance that the method was invoked on
+     *
+     * @param method the {@code Method} instance corresponding to
+     * the interface method invoked on the proxy instance.  The declaring
+     * class of the {@code Method} object will be the interface that
+     * the method was declared in, which may be a superinterface of the
+     * proxy interface that the proxy class inherits the method through.
+     *
+     * @param args an array of objects containing the values of the
+     * arguments passed in the method invocation on the proxy instance,
+     * or {@code null} if interface method takes no arguments.
+     * Arguments of primitive types are wrapped in instances of the
+     * appropriate primitive wrapper class, such as
+     * {@code java.lang.Integer} or {@code java.lang.Boolean}.
+     *
+     * @return
+     * @throws Throwable
+     */
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+      // 尝试从当前线程中取出 SqlSession 对象
       final SqlSession sqlSession = SqlSessionManager.this.localSqlSession.get();
+      // 当前线程中确实取出了 SqlSession 对象
       if (sqlSession != null) {
         try {
+          // 使用取出的 SqlSession 对象进行操作
           return method.invoke(sqlSession, args);
         } catch (Throwable t) {
           throw ExceptionUtil.unwrapThrowable(t);
         }
       } else {
+        // 当前线程中还没有 SqlSession 对象
+        // 使用属性中的 SqlSessionFactory 对象 创建一个 SqlSession 对象
         try (SqlSession autoSqlSession = openSession()) {
           try {
+            // 使用新创建的 SqlSession 对象进行操作
             final Object result = method.invoke(autoSqlSession, args);
             autoSqlSession.commit();
             return result;

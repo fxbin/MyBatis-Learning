@@ -28,6 +28,12 @@ public interface Interceptor {
     return Plugin.wrap(target, this);
   }
 
+
+  /**
+   * 为拦截器设置属性
+   *
+   * @param properties 属性配置
+   */
   default void setProperties(Properties properties) {
     // NOP
   }
