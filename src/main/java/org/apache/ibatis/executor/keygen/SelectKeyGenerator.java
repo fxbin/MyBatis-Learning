@@ -32,8 +32,19 @@ import org.apache.ibatis.session.RowBounds;
  */
 public class SelectKeyGenerator implements KeyGenerator {
 
+  /**
+   * 用户生成主键的 SQL 语句的特有标志，该标志会追加用于生成主键的 SQL 语句的 id 的后方
+   */
   public static final String SELECT_KEY_SUFFIX = "!selectKey";
+
+  /**
+   * 插入前执行还是插入后执行
+   */
   private final boolean executeBefore;
+
+  /**
+   * 用户生成主键的SQL语句
+   */
   private final MappedStatement keyStatement;
 
   public SelectKeyGenerator(MappedStatement keyStatement, boolean executeBefore) {
@@ -41,6 +52,14 @@ public class SelectKeyGenerator implements KeyGenerator {
     this.keyStatement = keyStatement;
   }
 
+  /**
+   * 数据插入前进行的操作
+   *
+   * @param executor 执行器
+   * @param ms 映射语句对象
+   * @param stmt Statement 对象
+   * @param parameter SQL 语句实参对象
+   */
   @Override
   public void processBefore(Executor executor, MappedStatement ms, Statement stmt, Object parameter) {
     if (executeBefore) {
@@ -48,6 +67,14 @@ public class SelectKeyGenerator implements KeyGenerator {
     }
   }
 
+  /**
+   * 数据插入后进行的操作
+   *
+   * @param executor 执行器
+   * @param ms 映射语句对象
+   * @param stmt Statement 对象
+   * @param parameter SQL 语句实参对象
+   */
   @Override
   public void processAfter(Executor executor, MappedStatement ms, Statement stmt, Object parameter) {
     if (!executeBefore) {
@@ -55,9 +82,18 @@ public class SelectKeyGenerator implements KeyGenerator {
     }
   }
 
+  /**
+   * 执行一段 SQL 语句后获取一个值，然后将该值赋给 Java 对象的自增属性
+   *
+   * @param executor 执行器
+   * @param ms 插入操作的SQL语句（不是生成主键的SQL语句）
+   * @param parameter 插入操作的对象
+   */
   private void processGeneratedKeys(Executor executor, MappedStatement ms, Object parameter) {
     try {
+      // keyStatement 为生成主键的SQL语句，keyStatement.getKeyProperties 拿到的是要自增的属性
       if (parameter != null && keyStatement != null && keyStatement.getKeyProperties() != null) {
+        // 要自增的属性
         String[] keyProperties = keyStatement.getKeyProperties();
         final Configuration configuration = ms.getConfiguration();
         final MetaObject metaParam = configuration.newMetaObject(parameter);
@@ -80,6 +116,7 @@ public class SelectKeyGenerator implements KeyGenerator {
               setValue(metaParam, keyProperties[0], values.get(0));
             }
           } else {
+            // 把执行SQL语句得到的值，赋给多个属性
             handleMultipleProperties(keyProperties, metaParam, metaResult);
           }
         }

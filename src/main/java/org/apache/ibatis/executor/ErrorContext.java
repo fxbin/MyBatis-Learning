@@ -20,9 +20,19 @@ package org.apache.ibatis.executor;
  */
 public class ErrorContext {
 
+  /**
+   * 当前操作系统的换行符
+   */
   private static final String LINE_SEPARATOR = System.lineSeparator();
+
+  /**
+   * 线程隔离
+   */
   private static final ThreadLocal<ErrorContext> LOCAL = ThreadLocal.withInitial(ErrorContext::new);
 
+  /**
+   * 存储上一版本的自身，从而组建错误链
+   */
   private ErrorContext stored;
   private String resource;
   private String activity;

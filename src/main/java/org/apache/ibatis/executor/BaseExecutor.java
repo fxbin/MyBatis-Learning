@@ -370,12 +370,27 @@ public abstract class BaseExecutor implements Executor {
     }
   }
 
+  /**
+   * 从数据库中查询结果
+   *
+   * @param ms 映射语句
+   * @param parameter 参数对象
+   * @param rowBounds 翻页限制条件
+   * @param resultHandler 结果处理器
+   * @param key 缓存的键
+   * @param boundSql 查询语句
+   * @return 结果列表
+   * @param <E> 结果类型
+   * @throws SQLException
+   */
   private <E> List<E> queryFromDatabase(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
     List<E> list;
+    // 向缓存中增加占位符，标识正在查询
     localCache.putObject(key, EXECUTION_PLACEHOLDER);
     try {
       list = doQuery(ms, parameter, rowBounds, resultHandler, boundSql);
     } finally {
+      // 移除占位符
       localCache.removeObject(key);
     }
     localCache.putObject(key, list);

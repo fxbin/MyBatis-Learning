@@ -36,6 +36,8 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.type.JdbcType;
 
 /**
+ * 存储过程语句
+ *
  * @author Clinton Begin
  */
 public class CallableStatementHandler extends BaseStatementHandler {
@@ -92,7 +94,9 @@ public class CallableStatementHandler extends BaseStatementHandler {
 
   @Override
   public void parameterize(Statement statement) throws SQLException {
+    // 输出参数的注册
     registerOutputParameters((CallableStatement) statement);
+    // 输入参数的处理
     parameterHandler.setParameters((CallableStatement) statement);
   }
 

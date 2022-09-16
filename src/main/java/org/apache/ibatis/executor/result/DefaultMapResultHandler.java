@@ -29,10 +29,29 @@ import org.apache.ibatis.session.ResultHandler;
  */
 public class DefaultMapResultHandler<K, V> implements ResultHandler<V> {
 
+  /**
+   * Map 形式的映射结果
+   */
   private final Map<K, V> mappedResults;
+
+  /**
+   * Map 的键，由用户指定，是结果对象中的某个属性名
+   */
   private final String mapKey;
+
+  /**
+   * 对象工厂
+   */
   private final ObjectFactory objectFactory;
+
+  /**
+   * 对象包装工厂
+   */
   private final ObjectWrapperFactory objectWrapperFactory;
+
+  /**
+   * 反射工厂
+   */
   private final ReflectorFactory reflectorFactory;
 
   @SuppressWarnings("unchecked")

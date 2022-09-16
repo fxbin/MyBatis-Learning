@@ -22,8 +22,19 @@ import org.apache.ibatis.session.ResultContext;
  */
 public class DefaultResultContext<T> implements ResultContext<T> {
 
+  /**
+   * 结果对象
+   */
   private T resultObject;
+
+  /**
+   * 结果计数（表明这是第几个结果对象）
+   */
   private int resultCount;
+
+  /**
+   * 使用完毕（结果已经被取走）
+   */
   private boolean stopped;
 
   public DefaultResultContext() {

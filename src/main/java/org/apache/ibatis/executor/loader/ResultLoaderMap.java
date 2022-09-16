@@ -109,10 +109,12 @@ public class ResultLoaderMap {
     private static final long serialVersionUID = 20130412;
     /**
      * Name of factory method which returns database connection.
+     * 用来根据反射得到数据库连接的方法名
      */
     private static final String FACTORY_METHOD = "getConfiguration";
     /**
      * Object to check whether we went through serialization..
+     * 判断是否经过了序列化的标志位，因为该属性被设置了 transient, 经过一次序列化和反序列化后会变为null
      */
     private final transient Object serializationCheck = new Object();
     /**
@@ -184,8 +186,18 @@ public class ResultLoaderMap {
       this.load(null);
     }
 
+    /**
+     * 进行加载操作
+     *
+     * @param userObject 需要被懒加载的对象（只有当 this.metaResultObject == null || this.resultLoader == null 时才生效）
+     *                   否则会采用属性 metaResultObject 对应的对象）
+     * @throws SQLException
+     */
     public void load(final Object userObject) throws SQLException {
       if (this.metaResultObject == null || this.resultLoader == null) {
+        // 输出结果对象的封装不存在或者输出结果加载器不存在
+
+        // 判断用以加载属性的对应的SQL语句存在
         if (this.mappedParameter == null) {
           throw new ExecutorException("Property [" + this.property + "] cannot be loaded because "
                   + "required parameter of mapped statement ["
@@ -193,6 +205,7 @@ public class ResultLoaderMap {
         }
 
         final Configuration config = this.getConfiguration();
+        // 取出用来加载结果的SQL语句
         final MappedStatement ms = config.getMappedStatement(this.mappedStatement);
         if (ms == null) {
           throw new ExecutorException("Cannot lazy load property [" + this.property
@@ -201,7 +214,9 @@ public class ResultLoaderMap {
                   + this.mappedStatement + "]");
         }
 
+        // 创建结果对象的包装
         this.metaResultObject = config.newMetaObject(userObject);
+        // 创建结果记载器
         this.resultLoader = new ResultLoader(config, new ClosedExecutor(), ms, this.mappedParameter,
                 metaResultObject.getSetterType(this.property), null, null);
       }
